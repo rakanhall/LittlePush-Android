@@ -1,0 +1,608 @@
+using System.Collections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using TMPro;
+using System.Collections.Generic; // Add this at the top of your script
+
+
+public class PlayerController : MonoBehaviour
+{    
+    // Player Stats
+    [Header("Player Stats")]
+    public float speed = 10f;
+    public float jumpForce = 5f;
+    public float doubleJumpForce = 4f;
+    public float wallSlideSpeed = 3f;
+    public float wallJumpForce = 10f;
+    public float jumpCooldown = 0.2f;
+
+    // Fall sound parameters
+    [Header("Fall sound parameters")]
+    public float airTimeThreshold = 0.5f;
+    private float timeInAir = 0f;
+
+    // Death parameters
+    [Header("Death parameters")]
+    public float deathFallSpeed = 1.0f;
+    public float deathJumpForce = 5f;
+
+    // Environment Checks
+    [Header("Environment Checks")]
+    public float unstuckForce = 1f;
+    public Transform groundCheck;
+    public Transform wallCheck;
+    public float checkRadius;
+    public LayerMask whatIsGround;
+    public LayerMask whatIsWall;
+    public float directionChangeCooldown = 0.1f;
+    public float takeoffAnimationLength = 0.2f;
+    public bool IsDead { get; private set; }
+    public GameObject tapToPlayText;
+    public bool isGameActive = false;
+    public GameObject StartButton;
+    public GameObject RetryButton;
+    public GameObject RetryImage;
+    public GameObject ScoreMenue;
+    public GameObject ScoreMask;
+    public GameObject WhiteScreen;
+    public GameObject TimerMask;
+    public AudioSource JumpSound;
+    public AudioSource DoubleJumpSound;
+    public AudioSource WallJumpSound;
+    public AudioSource DeathSound;
+    public AudioSource HitWallSound;
+    public AudioSource LandSound;
+    public AudioSource ScreamSound;
+    public AudioSource PushSound;
+    public AudioSource ShieldBreakSound;
+    public AudioSource TurnSound;
+    public BackgroundMusicController musicController;
+    public SettingButton settingButton;
+    public ParticleSystem Dust;
+    public ParticleSystem DeathPart;
+    public UIManager uiManager;
+    public float checkDistance = 0.1f;
+    public Animator pusherAnimator;
+    public Rigidbody2D pusherRigidbody;
+    public Animator shieldAnimator;
+    public GameObject ShieldButton;
+    public string shieldName;
+    public ParticleSystem ShieldBreak;
+    public AudioSource ShieldButtonSound;
+    public InterstitialAdController interstitialAdController;
+    public float gameStartDelay = 2.0f;
+    
+
+    private Rigidbody2D rb;
+    private BoxCollider2D boxCollider;
+    private bool isGrounded;
+    private bool isTouchingWall;
+    private bool isWallSliding;
+    private bool wallJumping;
+    private bool doubleJumped;
+    private bool isIdle;
+    private int direction = 1;
+    private float lastJumpTime = 0;
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
+    private float lastDirectionChangeTime = 0f;
+    private Vector3 startPosition;
+    private bool hasHitWallSoundPlayed = false;
+    private float fallStartY;
+    private RaycastHit2D groundHit;
+    private RaycastHit2D wallHit;
+    private bool hasShield = false;
+    private bool isInvincible = false;
+    private GameObject shieldSprite;  
+
+    private void Start()
+    {
+        shieldSprite = transform.Find(shieldName).gameObject;        
+        rb = GetComponent<Rigidbody2D>();
+        boxCollider = GetComponent<BoxCollider2D>();
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+       
+        rb.isKinematic = true;
+        tapToPlayText.SetActive(true);
+        
+
+        StartButton.SetActive(true);  // Start button is visible initially
+        RetryButton.SetActive(false);  // Retry button is invisible initially
+        RetryImage.SetActive(false);  // Retry image is invisible initially
+        ScoreMenue.SetActive(false);
+        ScoreMask.SetActive(false);
+        WhiteScreen.SetActive(true);
+        TimerMask.SetActive(false);
+
+        shieldAnimator.SetBool("IsThere", true);
+        shieldSprite.SetActive(false);
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
+        // Load shield status
+        hasShield = PlayerPrefs.GetInt("hasShield", 0) == 1;
+
+        if (hasShield)
+        {
+            shieldAnimator.SetTrigger("Go");
+            shieldSprite.SetActive(true); // Enable the shield sprite
+            ShieldButton.SetActive(false);
+        }
+        else
+        {
+            shieldSprite.SetActive(false); // Disable the shield sprite
+            ShieldButton.SetActive(true);
+        }
+    }
+
+
+
+    private void Update()
+    {
+        if (IsDead) return;
+
+        CheckEnvironment();
+        UpdateAnimations();
+
+        if (isGameActive)
+        {
+            if (Input.touchCount > 0)
+            {
+                HandleTouchInput();
+            }
+            HandleKeyboardInput();
+        }
+        HandleMovement();
+    }
+
+    private void HandleKeyboardInput()
+    {
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            if (Time.time - lastJumpTime >= jumpCooldown)
+            {
+                if (isGrounded || (!doubleJumped && !isWallSliding))
+                {
+                    DoubleJump();
+                    lastJumpTime = Time.time;
+                }
+                else if (isWallSliding && !wallJumping)
+                {
+                    WallJump();
+                    lastJumpTime = Time.time;
+                }
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            ChangeDirection();
+        }
+    }
+
+
+
+    private void CheckEnvironment()
+    {
+        bool wasGrounded = isGrounded;
+
+        groundHit = Physics2D.Raycast(groundCheck.position, Vector2.down, checkDistance, whatIsGround);
+        isGrounded = groundHit.collider != null;
+
+        wallHit = Physics2D.Raycast(wallCheck.position, Vector2.right * direction, checkDistance, whatIsWall);
+        isTouchingWall = wallHit.collider != null;
+
+        isWallSliding = isTouchingWall && !isGrounded;
+
+        if (!isGrounded)
+        {
+            timeInAir += Time.deltaTime;
+        }
+
+        if (!wasGrounded && isGrounded && timeInAir >= airTimeThreshold)
+        {
+            LandSound.Play();
+            timeInAir = 0f;
+            CreateDust();
+        }
+        else if (isGrounded)
+        {
+            timeInAir = 0f;
+        }
+
+        if (isGrounded || isTouchingWall)
+        {
+            doubleJumped = false;
+        }
+        if (isTouchingWall && isGrounded && !hasHitWallSoundPlayed)
+        {
+            HitWallSound.Play();
+            hasHitWallSoundPlayed = true;
+            ChangeDirection(true, false); // immediateChange is true, playSound is false
+            CreateDust();
+        }
+
+        else if (!isTouchingWall || !isGrounded)
+        {
+            hasHitWallSoundPlayed = false;
+        } 
+
+    }
+
+
+    private void HandleTouchInput()
+    {
+        // Return if game has not started
+        if (!isGameActive)
+            return;
+
+        for (int i = 0; i < Input.touchCount; i++)
+        {
+            Touch touch = Input.GetTouch(i);
+
+            if (touch.phase == TouchPhase.Began)
+            {
+                if (touch.position.x < Screen.width / 2)
+                {
+                    ChangeDirection();
+                }
+                else
+                {
+                    if (Time.time - lastJumpTime >= jumpCooldown)
+                    {
+                        if (isGrounded || (!doubleJumped && !isWallSliding))
+                        {
+                            DoubleJump();
+                            lastJumpTime = Time.time;
+                        }
+                        else if (isWallSliding && !wallJumping)
+                        {
+                            WallJump();
+                            lastJumpTime = Time.time;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void HandleMovement()
+    {
+        if (!isGameActive || IsDead)
+        {
+            return;
+        }
+        if (isWallSliding)
+        {
+            spriteRenderer.flipX = direction == -1 ? true : false;
+            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlideSpeed, float.MaxValue));
+        }
+        else
+        {
+            spriteRenderer.flipX = direction == -1 ? false : true;
+        }
+
+        // Apply the horizontal speed
+        rb.velocity = new Vector2(speed * direction, rb.velocity.y);
+
+        // Modify the vertical speed if falling too fast
+        float maxFallSpeed = -16f; // Define your own limit here
+        if (rb.velocity.y < maxFallSpeed)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, maxFallSpeed);
+        }
+
+        
+    }
+
+    private void Jump()
+    {
+        rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+        JumpSound.Play();        
+    }
+
+    private void DoubleJump()
+    {
+        if (isGrounded)
+        {
+            Jump();
+        }
+        else if (!doubleJumped)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, doubleJumpForce);
+            doubleJumped = true;
+            DoubleJumpSound.Play();
+        }
+    }
+
+    private void WallJump()
+    {
+        wallJumping = true;
+        direction *= -1;
+        rb.velocity = new Vector2(speed * direction, wallJumpForce);
+        StartCoroutine(DisableMovement(0.1f));
+        WallJumpSound.Play();
+
+
+    }
+
+    private void ChangeDirection(bool immediateChange = false, bool playSound = true)
+    {
+        if (immediateChange || Time.time - lastDirectionChangeTime >= directionChangeCooldown)
+        {
+            direction *= -1;
+            spriteRenderer.flipX = direction == 1;
+            lastDirectionChangeTime = Time.time;
+
+            // Play the turn sound only if playSound is true
+            if (playSound)
+            {
+                TurnSound.Play();
+            }
+        }
+    }
+
+
+    private IEnumerator DisableMovement(float time)
+    {
+        yield return new WaitForSeconds(time);
+        wallJumping = false;
+    }
+
+    private void UpdateAnimations()
+    {
+        animator.SetBool("speed", isGrounded && Mathf.Abs(rb.velocity.x) > 0.1f);
+        animator.SetBool("isJumping", rb.velocity.y > 0 && !isWallSliding && !isTouchingWall);
+        animator.SetBool("isFalling", rb.velocity.y < 0);
+        animator.SetBool("isSliding", isWallSliding && isTouchingWall);
+        animator.SetBool("IsIdle", isGrounded && Mathf.Abs(rb.velocity.x) < 0.1f);        
+    }
+
+    public void EnableShield()
+    {
+        PlayerPrefs.SetInt("hasShield", 1); // Save shield status
+        shieldAnimator.SetTrigger("Go");
+        hasShield = true;
+        shieldSprite.SetActive(true); // Enable the shield sprite
+        ShieldButtonSound.Play();
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        
+        if (collision.gameObject.CompareTag("Deadly"))
+        {
+            if (hasShield)
+            {
+                BreakShield();
+            }
+            else if (!isInvincible) // Only die if not invincible
+            {
+                Die();
+            }
+        }
+
+        if (collision.gameObject.CompareTag("Pusher"))
+        {
+            
+
+            PushSound.Play();
+            // This code executes only when player collides with the pusher
+            // Push the player
+            rb.AddForce(new Vector2(3f, 0f), ForceMode2D.Impulse);
+
+            // Call ActivateGame method after a delay
+            Invoke("ActivateGame", gameStartDelay);
+
+            // Stop the pusher
+            collision.rigidbody.velocity = Vector2.zero;
+            collision.rigidbody.isKinematic = true; // Make pusher static
+
+            // Get pusher's animator and set "Run" to false
+            Animator pusherAnimator = collision.gameObject.GetComponent<Animator>();
+            if (pusherAnimator != null)
+            {
+                pusherAnimator.SetBool("Run", false);
+            }
+
+            
+        }
+    }
+
+    void ActivateGame()
+    {
+        isGameActive = true;
+    }
+
+
+    public void BreakShield()
+    {
+        PlayerPrefs.SetInt("hasShield", 0); // Save shield status
+        hasShield = false;
+        shieldSprite.SetActive(false); // This will disable your shield sprite
+        rb.velocity = Vector2.zero;
+
+        // Apply an upward force
+        rb.AddForce(new Vector2(10f, 10f), ForceMode2D.Impulse);
+        StartCoroutine(MakeInvincible(3f));
+        ShieldBreak.Play();
+        ShieldBreakSound.Play();
+    }
+
+    private IEnumerator MakeInvincible(float duration)
+    {
+        isInvincible = true;
+
+        // Find all obstacles and disable their colliders
+        GameObject[] obstacles = GameObject.FindGameObjectsWithTag("Deadly");
+        List<Collider2D> obstacleColliders = new List<Collider2D>();
+        foreach (GameObject obstacle in obstacles)
+        {
+            Collider2D collider = obstacle.GetComponent<Collider2D>();
+            if (collider != null)
+            {
+                obstacleColliders.Add(collider);
+                collider.enabled = false;
+            }
+        }
+
+        float blinkSpeed = 0.1f;  // Define how fast the player will blink
+        float endTime = Time.time + duration;
+
+        while (Time.time < endTime)
+        {
+            // Make the player transparent
+            spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, 0.5f);
+            yield return new WaitForSeconds(blinkSpeed);
+
+            // Make the player opaque
+            spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, 1f);
+            yield return new WaitForSeconds(blinkSpeed);
+        }
+
+        // Ensure the player is opaque when invincibility ends
+        spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, 1f);
+        
+        // After the invincibility period, re-enable all the colliders
+        foreach (Collider2D collider in obstacleColliders)
+        {
+            if (collider != null) // Check in case the object was destroyed while invincible
+            {
+                collider.enabled = true;
+            }
+        }
+
+        isInvincible = false;
+    }
+    
+    
+    public void Die()
+    { 
+        if (isInvincible) return;
+
+     
+        IsDead = true;
+        GetComponent<SpriteRenderer>().enabled = false;
+        GetComponent<Collider2D>().enabled = false;
+        rb.velocity = Vector2.zero;
+        rb.isKinematic = true;
+        tapToPlayText.SetActive(false);
+        RetryButton.SetActive(true);  // Show the Retry button
+        RetryImage.SetActive(true);  // Show the Retry image
+        StartButton.SetActive(false);  // Make sure the Start button is hidden
+        isGameActive = false;
+        ScoreMask.SetActive(false);
+        WhiteScreen.SetActive(true);
+        GameManager1.instance.EndGame();
+        TimerMask.SetActive(false);
+        ScoreMenue.SetActive(false);
+        DeathPart.Play();
+        DeathSound.Play();
+        Invoke("ShowScoreMenu", 0.5f);
+
+    }
+
+    void ShowScoreMenu()
+    {
+        ScoreMenue.SetActive(true);
+        uiManager.ShowScoreMenu();
+        musicController.ChangeToDeathVolume();
+
+        if (UnityEngine.Random.value < 0.1f)
+        {
+            interstitialAdController.ShowAdIfReady();
+        }
+    }
+
+    public void StartGame()
+    {
+        musicController.ChangeToGameplayVolume();
+        ScreamSound.Play();
+        IsDead = false;
+
+        // Reset player position and physics
+        rb.isKinematic = false;
+        boxCollider.enabled = true;
+
+        // Hide Retry UI and show Start UI
+        RetryButton.SetActive(false);
+        RetryImage.SetActive(false);
+        StartButton.SetActive(false);
+        tapToPlayText.SetActive(false);
+        ScoreMenue.SetActive(false);
+        ScoreMask.SetActive(true);
+        WhiteScreen.SetActive(false);
+        settingButton.HideButton();
+        TimerMask.SetActive(true);
+        GameManager1.instance.StartGame();
+
+        // Set the pusher to start running
+        pusherAnimator.SetBool("Run", true);
+        pusherRigidbody.velocity = new Vector2(6f, 0);
+        shieldAnimator.SetTrigger("Go");
+    }
+
+    public void OnRetryButtonClicked()
+    {        
+        RetryGame();       
+    }
+
+    public void RetryGame()
+    {       
+        GameManager1.instance.ReloadScene();       
+    }
+
+    void CreateDust()
+    {
+        Dust.Play();
+    }
+
+    public bool HasShield()
+    {
+        return hasShield;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
