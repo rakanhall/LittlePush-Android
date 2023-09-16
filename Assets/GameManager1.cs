@@ -15,8 +15,6 @@ public class GameManager1 : MonoBehaviour
     public Transform playerTransform;
     public GameObject bestScoreTextObject;
     public GameObject newBestTextObject;
-    public Animator CoinMaskAnimator;
-    public GameObject CoinCurrentMask;
     public ParticleSystem confettiParticleSystem;
     public AudioSource confettiAudioSource;
     public AudioSource TimerSound;
@@ -70,7 +68,6 @@ public class GameManager1 : MonoBehaviour
         highestYPosition = playerTransform.position.y;
         bestScoreTextObject.SetActive(true);
         newBestTextObject.SetActive(false);
-        CoinCurrentMask.SetActive(false);
 
 
     }
@@ -203,8 +200,6 @@ public class GameManager1 : MonoBehaviour
 
         gameIsRunning = true;
 
-        CoinMaskAnimator.SetTrigger("Go");
-        CoinCurrentMask.SetActive(true);
 
 
     }

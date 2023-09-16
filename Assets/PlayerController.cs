@@ -57,7 +57,6 @@ public class PlayerController : MonoBehaviour
     public AudioSource ShieldBreakSound;
     public AudioSource TurnSound;
     public BackgroundMusicController musicController;
-    public SettingButton settingButton;
     public ParticleSystem Dust;
     public ParticleSystem DeathPart;
     public UIManager uiManager;
@@ -65,6 +64,7 @@ public class PlayerController : MonoBehaviour
     public Animator pusherAnimator;
     public Rigidbody2D pusherRigidbody;
     public Animator shieldAnimator;
+    public Animator UpperMenueAnimation;
     public GameObject ShieldButton;
     public string shieldName;
     public ParticleSystem ShieldBreak;
@@ -115,7 +115,6 @@ public class PlayerController : MonoBehaviour
         WhiteScreen.SetActive(true);
         TimerMask.SetActive(false);
 
-        shieldAnimator.SetBool("IsThere", true);
         shieldSprite.SetActive(false);
 
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -125,7 +124,6 @@ public class PlayerController : MonoBehaviour
 
         if (hasShield)
         {
-            shieldAnimator.SetTrigger("Go");
             shieldSprite.SetActive(true); // Enable the shield sprite
             ShieldButton.SetActive(false);
         }
@@ -362,7 +360,6 @@ public class PlayerController : MonoBehaviour
     public void EnableShield()
     {
         PlayerPrefs.SetInt("hasShield", 1); // Save shield status
-        shieldAnimator.SetTrigger("Go");
         hasShield = true;
         shieldSprite.SetActive(true); // Enable the shield sprite
         ShieldButtonSound.Play();
@@ -533,14 +530,14 @@ public class PlayerController : MonoBehaviour
         ScoreMenue.SetActive(false);
         ScoreMask.SetActive(true);
         WhiteScreen.SetActive(false);
-        settingButton.HideButton();
         TimerMask.SetActive(true);
         GameManager1.instance.StartGame();
+        UpperMenueAnimation.SetTrigger("Go");
 
         // Set the pusher to start running
         pusherAnimator.SetBool("Run", true);
         pusherRigidbody.velocity = new Vector2(6f, 0);
-        shieldAnimator.SetTrigger("Go");
+
     }
 
     public void OnRetryButtonClicked()
