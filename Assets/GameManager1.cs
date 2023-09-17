@@ -30,7 +30,12 @@ public class GameManager1 : MonoBehaviour
     public int midScoreThreshold = 160;
     public int highScoreThreshold = 250;
     public GameObject clouds;  
-    public GameObject birds;  
+    public GameObject birds;
+    public int totalCoins;
+    public int coinsThisGame;
+    public TextMeshProUGUI totalCoinsText;
+    public TextMeshProUGUI gameplayCoinsText;
+    public TextMeshProUGUI gameplayCoinsTextEndMenue;
 
     private Animator cameraAnimator;
     private SpriteRenderer[] dayCityRenderers;
@@ -72,6 +77,13 @@ public class GameManager1 : MonoBehaviour
 
     }
 
+    private void Start()
+    {
+        LoadCoins();
+        UpdateCoinTexts();
+    }
+
+
     private void Update()
     {
         if (!gameIsRunning) return;
@@ -99,7 +111,6 @@ public class GameManager1 : MonoBehaviour
         {
             ResetBestScore();
         }
-
 
     }
 
@@ -199,9 +210,6 @@ public class GameManager1 : MonoBehaviour
         }
 
         gameIsRunning = true;
-
-
-
     }
 
     public void EndGame()
@@ -250,6 +258,56 @@ public class GameManager1 : MonoBehaviour
         bestScoreText.text = "0m"; // Update the displayed score
         PlayerPrefs.Save(); // Save changes
     }
+
+    public void CollectCoin()
+    {
+        coinsThisGame += 1;
+        totalCoins += 1;
+
+        if (gameplayCoinsText != null)
+            gameplayCoinsText.text = coinsThisGame.ToString();
+
+        if (gameplayCoinsTextEndMenue != null)
+            gameplayCoinsTextEndMenue.text = coinsThisGame.ToString();
+
+        SaveCoins();
+    }
+
+
+    public void ResetGameCoins()
+    {
+        coinsThisGame = 0;
+        if (gameplayCoinsText != null)
+            gameplayCoinsText.text = coinsThisGame.ToString();
+
+        if (gameplayCoinsTextEndMenue != null)
+            gameplayCoinsTextEndMenue.text = coinsThisGame.ToString();
+    }
+
+
+    private void SaveCoins()
+    {
+        PlayerPrefs.SetInt("TotalCoins", totalCoins);
+    }
+
+    private void LoadCoins()
+    {
+        totalCoins = PlayerPrefs.GetInt("TotalCoins", 0);
+    }
+
+    private void UpdateCoinTexts()
+    {
+        if (totalCoinsText != null)
+            totalCoinsText.text = totalCoins.ToString();
+
+        if (gameplayCoinsText != null)
+            gameplayCoinsText.text = coinsThisGame.ToString();
+
+        if (gameplayCoinsTextEndMenue != null)
+            gameplayCoinsTextEndMenue.text = coinsThisGame.ToString();
+
+    }
+
 
 }
 

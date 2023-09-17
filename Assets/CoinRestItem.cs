@@ -10,6 +10,7 @@ public class CoinRestItem : MonoBehaviour
         if (other.gameObject.CompareTag("Player"))
         {
             // After resetting timer, destroy this item
+            GameManager1.instance.CollectCoin();
             Destroy(gameObject);
         }
     }

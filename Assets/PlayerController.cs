@@ -45,7 +45,10 @@ public class PlayerController : MonoBehaviour
     public GameObject ScoreMenue;
     public GameObject ScoreMask;
     public GameObject WhiteScreen;
+    public GameObject BlackScreen;
     public GameObject TimerMask;
+    public GameObject CoinsPlayMask;
+    public Animator SettingMenue;
     public AudioSource JumpSound;
     public AudioSource DoubleJumpSound;
     public AudioSource WallJumpSound;
@@ -114,6 +117,8 @@ public class PlayerController : MonoBehaviour
         ScoreMask.SetActive(false);
         WhiteScreen.SetActive(true);
         TimerMask.SetActive(false);
+        CoinsPlayMask.SetActive(false);
+        BlackScreen.SetActive(false);
 
         shieldSprite.SetActive(false);
 
@@ -490,13 +495,16 @@ public class PlayerController : MonoBehaviour
         StartButton.SetActive(false);  // Make sure the Start button is hidden
         isGameActive = false;
         ScoreMask.SetActive(false);
-        WhiteScreen.SetActive(true);
+        WhiteScreen.SetActive(false);
         GameManager1.instance.EndGame();
         TimerMask.SetActive(false);
         ScoreMenue.SetActive(false);
         DeathPart.Play();
         DeathSound.Play();
         Invoke("ShowScoreMenu", 0.5f);
+        CoinsPlayMask.SetActive(false);
+        BlackScreen.SetActive(true);
+
 
     }
 
@@ -531,8 +539,11 @@ public class PlayerController : MonoBehaviour
         ScoreMask.SetActive(true);
         WhiteScreen.SetActive(false);
         TimerMask.SetActive(true);
+        CoinsPlayMask.SetActive(true);
         GameManager1.instance.StartGame();
         UpperMenueAnimation.SetTrigger("Go");
+        SettingMenue.SetBool("Open", false);
+        BlackScreen.SetActive(false);
 
         // Set the pusher to start running
         pusherAnimator.SetBool("Run", true);
