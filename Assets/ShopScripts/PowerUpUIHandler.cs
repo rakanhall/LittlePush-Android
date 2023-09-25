@@ -20,6 +20,10 @@ public class PowerUpUIHandler : MonoBehaviour
     public TextMeshProUGUI powerUpQuantityText;
     public TextMeshProUGUI unlockPriceText;
     public TextMeshProUGUI buyPriceText;
+ 
+
+    public int slotSpaceRequired = 1; // Define how much space this power requires. 1 or 2.
+
 
     private void Start()
     {
@@ -81,22 +85,28 @@ public class PowerUpUIHandler : MonoBehaviour
 
     public void EquipPowerUp()
     {
-        if (!IsEquipped)
+        Debug.Log("Equip button pressed for power: " + powerUpName);
+
+        if (Quantity > 0 && !IsEquipped && SlotManager.instance.EquipPower(powerUpName, slotSpaceRequired))
         {
-            IsEquipped = true;
-            PlayerPrefs.SetInt(powerUpName + "_IsEquipped", 1); // Save equipped state
+            Debug.Log("Equipped power: " + powerUpName);
+            // If power is successfully equipped, decrement quantity
+            IsEquipped = true;  // Set equipped flag
+            PlayerPrefs.SetInt(powerUpName + "_IsEquipped", 1);  // Save equipped state
             UpdateUI();
+        }
+        else
+        {
+            Debug.Log("Failed to equip power: " + powerUpName);
         }
     }
 
     public void UnequipPowerUp()
     {
-        if (IsEquipped)
-        {
-            IsEquipped = false;
-            PlayerPrefs.SetInt(powerUpName + "_IsEquipped", 0); // Save unequipped state
-            UpdateUI();
-        }
+        SlotManager.instance.UnequipPower(powerUpName);
+        IsEquipped = false;  // Reset equipped flag
+        PlayerPrefs.SetInt(powerUpName + "_IsEquipped", 0);  // Save unequipped state
+        UpdateUI();
     }
 
     public void UpdateUI()
@@ -109,6 +119,9 @@ public class PowerUpUIHandler : MonoBehaviour
         unlockPriceText.text = UnlockCost.ToString();
         buyPriceText.text = PurchaseCost.ToString();
         powerUpQuantityText.text = Quantity.ToString();
+
+        equipButton.gameObject.SetActive(!IsEquipped);  // Show equip button if not equipped
+        unequipButton.gameObject.SetActive(IsEquipped);  // Show unequip button if equipped
     }
 }
 
