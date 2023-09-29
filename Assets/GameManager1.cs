@@ -22,6 +22,7 @@ public class GameManager1 : MonoBehaviour
     public float activationScoreLimit = 0.6f;
     public float timerValue = 15.0f;
     public PlayerController playerController;
+    public PowerUpController powerupcontroller;
     public Camera mainCamera;
     public Transform cityDayParent;
     public Transform cityNightParent;
@@ -82,9 +83,9 @@ public class GameManager1 : MonoBehaviour
 
         if (timerValue <= 0)
         {
-            if (playerController.HasShield())
+            if (powerupcontroller.HasShield())
             {
-                playerController.BreakShield();
+                powerupcontroller.BreakShield();
                 ResetTimer();
             }
             else

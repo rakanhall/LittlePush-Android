@@ -57,7 +57,6 @@ public class PlayerController : MonoBehaviour
     public AudioSource LandSound;
     public AudioSource ScreamSound;
     public AudioSource PushSound;
-    public AudioSource ShieldBreakSound;
     public AudioSource TurnSound;
     public BackgroundMusicController musicController;
     public ParticleSystem Dust;
@@ -66,16 +65,9 @@ public class PlayerController : MonoBehaviour
     public float checkDistance = 0.1f;
     public Animator pusherAnimator;
     public Rigidbody2D pusherRigidbody;
-    public Animator shieldAnimator;
     public Animator UpperMenueAnimation;
-    public GameObject ShieldButton;
-    public string shieldName;
-    public ParticleSystem ShieldBreak;
-    public AudioSource ShieldButtonSound;
     public InterstitialAdController interstitialAdController;
     public float gameStartDelay = 2.0f;
-    
-
     private Rigidbody2D rb;
     private BoxCollider2D boxCollider;
     private bool isGrounded;
@@ -94,13 +86,9 @@ public class PlayerController : MonoBehaviour
     private float fallStartY;
     private RaycastHit2D groundHit;
     private RaycastHit2D wallHit;
-    private bool hasShield = false;
-    private bool isInvincible = false;
-    private GameObject shieldSprite;  
 
     private void Start()
-    {
-        shieldSprite = transform.Find(shieldName).gameObject;        
+    {      
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         animator = GetComponent<Animator>();
@@ -119,24 +107,6 @@ public class PlayerController : MonoBehaviour
         TimerMask.SetActive(false);
         CoinsPlayMask.SetActive(false);
         BlackScreen.SetActive(false);
-
-        shieldSprite.SetActive(false);
-
-        spriteRenderer = GetComponent<SpriteRenderer>();
-
-        // Load shield status
-        hasShield = PlayerPrefs.GetInt("hasShield", 0) == 1;
-
-        if (hasShield)
-        {
-            shieldSprite.SetActive(true); // Enable the shield sprite
-            ShieldButton.SetActive(false);
-        }
-        else
-        {
-            shieldSprite.SetActive(false); // Disable the shield sprite
-            ShieldButton.SetActive(true);
-        }
     }
 
 
@@ -362,33 +332,10 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("IsIdle", isGrounded && Mathf.Abs(rb.velocity.x) < 0.1f);        
     }
 
-    public void EnableShield()
-    {
-        PlayerPrefs.SetInt("hasShield", 1); // Save shield status
-        hasShield = true;
-        shieldSprite.SetActive(true); // Enable the shield sprite
-        ShieldButtonSound.Play();
-    }
-
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        
-        if (collision.gameObject.CompareTag("Deadly"))
-        {
-            if (hasShield)
-            {
-                BreakShield();
-            }
-            else if (!isInvincible) // Only die if not invincible
-            {
-                Die();
-            }
-        }
-
         if (collision.gameObject.CompareTag("Pusher"))
         {
-            
-
             PushSound.Play();
             // This code executes only when player collides with the pusher
             // Push the player
@@ -406,9 +353,7 @@ public class PlayerController : MonoBehaviour
             if (pusherAnimator != null)
             {
                 pusherAnimator.SetBool("Run", false);
-            }
-
-            
+            }       
         }
     }
 
@@ -416,74 +361,9 @@ public class PlayerController : MonoBehaviour
     {
         isGameActive = true;
     }
-
-
-    public void BreakShield()
-    {
-        PlayerPrefs.SetInt("hasShield", 0); // Save shield status
-        hasShield = false;
-        shieldSprite.SetActive(false); // This will disable your shield sprite
-        rb.velocity = Vector2.zero;
-
-        // Apply an upward force
-        rb.AddForce(new Vector2(10f, 10f), ForceMode2D.Impulse);
-        StartCoroutine(MakeInvincible(3f));
-        ShieldBreak.Play();
-        ShieldBreakSound.Play();
-    }
-
-    private IEnumerator MakeInvincible(float duration)
-    {
-        isInvincible = true;
-
-        // Find all obstacles and disable their colliders
-        GameObject[] obstacles = GameObject.FindGameObjectsWithTag("Deadly");
-        List<Collider2D> obstacleColliders = new List<Collider2D>();
-        foreach (GameObject obstacle in obstacles)
-        {
-            Collider2D collider = obstacle.GetComponent<Collider2D>();
-            if (collider != null)
-            {
-                obstacleColliders.Add(collider);
-                collider.enabled = false;
-            }
-        }
-
-        float blinkSpeed = 0.1f;  // Define how fast the player will blink
-        float endTime = Time.time + duration;
-
-        while (Time.time < endTime)
-        {
-            // Make the player transparent
-            spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, 0.5f);
-            yield return new WaitForSeconds(blinkSpeed);
-
-            // Make the player opaque
-            spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, 1f);
-            yield return new WaitForSeconds(blinkSpeed);
-        }
-
-        // Ensure the player is opaque when invincibility ends
-        spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, 1f);
-        
-        // After the invincibility period, re-enable all the colliders
-        foreach (Collider2D collider in obstacleColliders)
-        {
-            if (collider != null) // Check in case the object was destroyed while invincible
-            {
-                collider.enabled = true;
-            }
-        }
-
-        isInvincible = false;
-    }
-    
-    
+   
     public void Die()
-    { 
-        if (isInvincible) return;
-
-     
+    {    
         IsDead = true;
         GetComponent<SpriteRenderer>().enabled = false;
         GetComponent<Collider2D>().enabled = false;
@@ -504,8 +384,6 @@ public class PlayerController : MonoBehaviour
         Invoke("ShowScoreMenu", 0.5f);
         CoinsPlayMask.SetActive(false);
         BlackScreen.SetActive(true);
-
-
     }
 
     void ShowScoreMenu()
@@ -564,11 +442,6 @@ public class PlayerController : MonoBehaviour
     void CreateDust()
     {
         Dust.Play();
-    }
-
-    public bool HasShield()
-    {
-        return hasShield;
     }
 
 }

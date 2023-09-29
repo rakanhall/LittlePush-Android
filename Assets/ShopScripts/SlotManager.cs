@@ -9,11 +9,21 @@ public class SlotManager : MonoBehaviour
     [Header("Slot UI")]
     public Image slot1Image;
     public Image slot2Image;
+    public Image slot3Image;
+    public Image slot4Image;
+
+    [Header("Gameplay Buttons")]
+    public Button gameplayButton1;
+    public Button gameplayButton2;
 
     [Header("Power Icons")]
     public List<string> powerNames = new List<string>();
     public List<Sprite> powerSprites = new List<Sprite>();
-    private Dictionary<string, Sprite> powerUpIcons = new Dictionary<string, Sprite>();  // This is the dictionary we'll use
+    private Dictionary<string, Sprite> powerUpIcons = new Dictionary<string, Sprite>();
+
+    [Header("PowerUp Controller")]
+    public PowerUpController powerUpController;
+
 
     [HideInInspector]
     public string slot1Power = "";
@@ -29,7 +39,7 @@ public class SlotManager : MonoBehaviour
         else if (instance != this)
         {
             Destroy(gameObject);
-            return; // Added return here
+            return;
         }
 
         // Populate the powerUpIcons dictionary
@@ -40,7 +50,7 @@ public class SlotManager : MonoBehaviour
 
         LoadSlotState();
         UpdateSlotImages();
-
+        UpdateGameplayButtons();
     }
 
     public bool EquipPower(string powerName, int spaceRequired)
@@ -52,7 +62,7 @@ public class SlotManager : MonoBehaviour
         if (spaceRequired == 2 && string.IsNullOrEmpty(slot1Power) && string.IsNullOrEmpty(slot2Power))
         {
             slot1Power = powerName;
-            slot2Power = powerName;
+            slot2Power = powerName;  // Occupy both slots with the same power
             equipped = true;
         }
         else if (spaceRequired == 1)
@@ -72,6 +82,7 @@ public class SlotManager : MonoBehaviour
         if (equipped)
         {
             UpdateSlotImages();
+            UpdateGameplayButtons();
             SaveSlotState();
         }
 
@@ -83,14 +94,123 @@ public class SlotManager : MonoBehaviour
         if (slot1Power == powerName)
         {
             slot1Power = "";
+            if (slot2Power == powerName)
+            {
+                slot2Power = "";  // Clear the second slot as well
+            }
         }
-        if (slot2Power == powerName)
+        else if (slot2Power == powerName)
         {
             slot2Power = "";
         }
 
         UpdateSlotImages();
+        UpdateGameplayButtons();
         SaveSlotState();
+    }
+
+    private void UpdateGameplayButtons()
+    {
+        // Button 1
+        int slot1Quantity = PlayerPrefs.GetInt(slot1Power + "_Quantity", 0);
+        if (!string.IsNullOrEmpty(slot1Power) && slot1Quantity > 0)
+        {
+            gameplayButton1.gameObject.SetActive(true);
+            gameplayButton1.onClick.RemoveAllListeners();
+            gameplayButton1.onClick.AddListener(() => UsePower(slot1Power));
+        }
+        else
+        {
+            gameplayButton1.gameObject.SetActive(false);
+        }
+
+        // Button 2
+        int slot2Quantity = PlayerPrefs.GetInt(slot2Power + "_Quantity", 0);
+        if (!string.IsNullOrEmpty(slot2Power) && slot1Power != slot2Power && slot2Quantity > 0)
+        {
+            gameplayButton2.gameObject.SetActive(true);
+            gameplayButton2.onClick.RemoveAllListeners();
+            gameplayButton2.onClick.AddListener(() => UsePower(slot2Power));
+        }
+        else
+        {
+            gameplayButton2.gameObject.SetActive(false);
+        }
+    }
+
+    private void UpdateSlotImages()
+    {
+        if (!string.IsNullOrEmpty(slot1Power))
+        {
+            slot1Image.sprite = powerUpIcons[slot1Power];
+            slot1Image.enabled = true;
+        }
+        else
+        {
+            slot1Image.enabled = false;
+        }
+
+        if (!string.IsNullOrEmpty(slot2Power) && slot1Power != slot2Power)
+        {
+            slot2Image.sprite = powerUpIcons[slot2Power];
+            slot2Image.enabled = true;
+        }
+        else
+        {
+            slot2Image.enabled = false;
+        }
+
+
+        if (!string.IsNullOrEmpty(slot1Power))
+        {
+            slot3Image.sprite = powerUpIcons[slot1Power];
+            slot3Image.enabled = true;
+        }
+        else
+        {
+            slot3Image.enabled = false;
+        }
+
+        if (!string.IsNullOrEmpty(slot2Power) && slot1Power != slot2Power)
+        {
+            slot4Image.sprite = powerUpIcons[slot2Power];
+            slot4Image.enabled = true;
+        }
+        else
+        {
+            slot4Image.enabled = false;
+        }
+    }
+
+    private void UsePower(string powerName)
+    {
+        int currentQuantity = PlayerPrefs.GetInt(powerName + "_Quantity", 0);
+        if (currentQuantity > 0)
+        {
+            currentQuantity--;
+            PlayerPrefs.SetInt(powerName + "_Quantity", currentQuantity);
+
+            if (currentQuantity == 0)
+            {
+                PlayerPrefs.SetInt(powerName + "_ShouldUnequip", 1);  // Set a flag to unequip this power when in shop scene
+            }
+        }
+
+        if (powerName == slot1Power)
+        {
+            gameplayButton1.gameObject.SetActive(false);
+        }
+        else if (powerName == slot2Power)
+        {
+            gameplayButton2.gameObject.SetActive(false);
+        }
+
+        // Add logic here when a power button is pressed.
+        if (powerName == "PowerUpShield")
+        {
+            powerUpController.EnableShield();
+        }
+        // Handle other powers as you add them in the future
     }
 
     private void SaveSlotState()
@@ -105,35 +225,13 @@ public class SlotManager : MonoBehaviour
         slot2Power = PlayerPrefs.GetString("Slot2Power", "");
     }
 
-    private void UpdateSlotImages()
-    {
-        if (!string.IsNullOrEmpty(slot1Power))
-        {
-            slot1Image.sprite = powerUpIcons[slot1Power];
-            slot1Image.enabled = true;
-        }
-        else
-        {
-            slot1Image.enabled = false;  // or use a default image
-        }
-
-        if (!string.IsNullOrEmpty(slot2Power))
-        {
-            slot2Image.sprite = powerUpIcons[slot2Power];
-            slot2Image.enabled = true;
-        }
-        else
-        {
-            slot2Image.enabled = false;  // or use a default image
-        }
-    }
-
     public void ClearSlotData()
     {
         PlayerPrefs.DeleteKey("Slot1Power");
         PlayerPrefs.DeleteKey("Slot2Power");
     }
-
 }
+
+
 
 

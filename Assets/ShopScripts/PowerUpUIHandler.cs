@@ -32,6 +32,12 @@ public class PowerUpUIHandler : MonoBehaviour
         Quantity = PlayerPrefs.GetInt(powerUpName + "_Quantity", 0);
         IsEquipped = PlayerPrefs.GetInt(powerUpName + "_IsEquipped", 0) == 1;
 
+        if (PlayerPrefs.GetInt(powerUpName + "_ShouldUnequip", 0) == 1)
+        {
+            UnequipPowerUp();
+            PlayerPrefs.SetInt(powerUpName + "_ShouldUnequip", 0);  // Reset the flag
+        }
+
         UpdateUI();
     }
 
@@ -108,6 +114,17 @@ public class PowerUpUIHandler : MonoBehaviour
         PlayerPrefs.SetInt(powerUpName + "_IsEquipped", 0);  // Save unequipped state
         UpdateUI();
     }
+
+    public void UsePowerUp()
+    {
+        if (Quantity > 0)
+        {
+            Quantity--;
+            PlayerPrefs.SetInt(powerUpName + "_Quantity", Quantity); // Save updated quantity
+            UpdateUI();
+        }
+    }
+
 
     public void UpdateUI()
     {
