@@ -17,13 +17,15 @@ public class PowerUpController : MonoBehaviour
     private bool hasShield = false;
     private SpriteRenderer spriteRenderer;
 
+    public float slowFallMultiplier = 0.5f; // This multiplies the falling speed by half (or 50% reduction in speed)
+    private bool isSlowFallingActive = false;
+
     void Start()
     {
         shieldSprite = transform.Find(shieldName).gameObject;
         spriteRenderer = GetComponent<SpriteRenderer>();
 
-        // Load shield status
-        hasShield = PlayerPrefs.GetInt("hasShield", 0) == 1;
+       
 
         if (hasShield)
         {
@@ -39,7 +41,6 @@ public class PowerUpController : MonoBehaviour
 
     public void EnableShield()
     {
-        PlayerPrefs.SetInt("hasShield", 1); // Save shield status
         hasShield = true;
         shieldSprite.SetActive(true); // Enable the shield sprite
         ShieldButtonSound.Play();
@@ -64,7 +65,6 @@ public class PowerUpController : MonoBehaviour
 
     public void BreakShield()
     {
-        PlayerPrefs.SetInt("hasShield", 0); // Save shield status
         hasShield = false;
         shieldSprite.SetActive(false); // This will disable your shield sprite
         GetComponent<Rigidbody2D>().velocity = Vector2.zero;
@@ -115,13 +115,28 @@ public class PowerUpController : MonoBehaviour
                 collider.enabled = true;
             }
         }
-
-
     }
 
     public bool HasShield()
     {
         return hasShield;
+    }
+
+    public void ActivateSlowFall()
+    {
+        isSlowFallingActive = true;
+        playerController.AdjustFallingSpeed(slowFallMultiplier);
+    }
+
+    public void DeactivateSlowFall()
+    {
+        isSlowFallingActive = false;
+        playerController.ResetFallingSpeed();
+    }
+
+    public bool IsSlowFallingActive()
+    {
+        return isSlowFallingActive;
     }
 }
 

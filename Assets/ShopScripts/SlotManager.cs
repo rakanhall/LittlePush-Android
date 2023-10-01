@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using TMPro;
 
 public class SlotManager : MonoBehaviour
 {
@@ -11,6 +12,10 @@ public class SlotManager : MonoBehaviour
     public Image slot2Image;
     public Image slot3Image;
     public Image slot4Image;
+
+    [Header("Gameplay Buttons Text")]
+    public TextMeshProUGUI gameplayButton1Text;  // Assign the TextMeshProUGUI component of gameplayButton1 in the inspector
+    public TextMeshProUGUI gameplayButton2Text;  // Assign the TextMeshProUGUI component of gameplayButton2 in the inspector
 
     [Header("Gameplay Buttons")]
     public Button gameplayButton1;
@@ -118,6 +123,7 @@ public class SlotManager : MonoBehaviour
             gameplayButton1.gameObject.SetActive(true);
             gameplayButton1.onClick.RemoveAllListeners();
             gameplayButton1.onClick.AddListener(() => UsePower(slot1Power));
+            gameplayButton1Text.text = slot1Quantity.ToString(); // Update the text component
         }
         else
         {
@@ -131,6 +137,7 @@ public class SlotManager : MonoBehaviour
             gameplayButton2.gameObject.SetActive(true);
             gameplayButton2.onClick.RemoveAllListeners();
             gameplayButton2.onClick.AddListener(() => UsePower(slot2Power));
+            gameplayButton2Text.text = slot2Quantity.ToString(); // Update the text component
         }
         else
         {
@@ -209,6 +216,11 @@ public class SlotManager : MonoBehaviour
         if (powerName == "PowerUpShield")
         {
             powerUpController.EnableShield();
+        }
+
+        if (powerName == "PowerUpSlow")
+        {
+            powerUpController.ActivateSlowFall();
         }
         // Handle other powers as you add them in the future
     }

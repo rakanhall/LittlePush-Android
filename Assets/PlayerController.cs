@@ -48,6 +48,9 @@ public class PlayerController : MonoBehaviour
     public GameObject BlackScreen;
     public GameObject TimerMask;
     public GameObject CoinsPlayMask;
+    public GameObject ButtonSlots;
+    public GameObject ShopButton;
+    public GameObject ImageSlots;
     public Animator SettingMenue;
     public AudioSource JumpSound;
     public AudioSource DoubleJumpSound;
@@ -64,6 +67,8 @@ public class PlayerController : MonoBehaviour
     public UIManager uiManager;
     public float checkDistance = 0.1f;
     public Animator pusherAnimator;
+    public Animator ButtonSlotsAnim;
+    public Animator ShopButtonAnimation;
     public Rigidbody2D pusherRigidbody;
     public Animator UpperMenueAnimation;
     public InterstitialAdController interstitialAdController;
@@ -86,6 +91,8 @@ public class PlayerController : MonoBehaviour
     private float fallStartY;
     private RaycastHit2D groundHit;
     private RaycastHit2D wallHit;
+    private float initialMaxFallSpeed = -16f;
+    private float currentMaxFallSpeed;
 
     private void Start()
     {      
@@ -97,7 +104,6 @@ public class PlayerController : MonoBehaviour
         rb.isKinematic = true;
         tapToPlayText.SetActive(true);
         
-
         StartButton.SetActive(true);  // Start button is visible initially
         RetryButton.SetActive(false);  // Retry button is invisible initially
         RetryImage.SetActive(false);  // Retry image is invisible initially
@@ -107,6 +113,10 @@ public class PlayerController : MonoBehaviour
         TimerMask.SetActive(false);
         CoinsPlayMask.SetActive(false);
         BlackScreen.SetActive(false);
+        ButtonSlots.SetActive(false);
+
+        currentMaxFallSpeed = initialMaxFallSpeed;
+
     }
 
 
@@ -260,13 +270,12 @@ public class PlayerController : MonoBehaviour
         rb.velocity = new Vector2(speed * direction, rb.velocity.y);
 
         // Modify the vertical speed if falling too fast
-        float maxFallSpeed = -16f; // Define your own limit here
-        if (rb.velocity.y < maxFallSpeed)
+        if (rb.velocity.y < currentMaxFallSpeed)
         {
-            rb.velocity = new Vector2(rb.velocity.x, maxFallSpeed);
+            rb.velocity = new Vector2(rb.velocity.x, currentMaxFallSpeed);
         }
 
-        
+
     }
 
     private void Jump()
@@ -422,6 +431,10 @@ public class PlayerController : MonoBehaviour
         UpperMenueAnimation.SetTrigger("Go");
         SettingMenue.SetBool("Open", false);
         BlackScreen.SetActive(false);
+        ButtonSlots.SetActive(true);
+        Invoke("TriggerGoAnimation", 5f);
+        ShopButtonAnimation.SetTrigger("Go");
+        ImageSlots.SetActive(false);
 
         // Set the pusher to start running
         pusherAnimator.SetBool("Run", true);
@@ -443,6 +456,22 @@ public class PlayerController : MonoBehaviour
     {
         Dust.Play();
     }
+
+    private void TriggerGoAnimation()
+    {
+        ButtonSlotsAnim.SetTrigger("Go");
+    }
+
+    public void AdjustFallingSpeed(float multiplier)
+    {
+        currentMaxFallSpeed = initialMaxFallSpeed * multiplier;
+    }
+
+    public void ResetFallingSpeed()
+    {
+        currentMaxFallSpeed = initialMaxFallSpeed;
+    }
+
 
 }
 
