@@ -7588,6 +7588,7 @@ Transform:
   - {fileID: 1728243745}
   - {fileID: 1391749994}
   - {fileID: 547473551}
+  - {fileID: 477168438}
   m_Father: {fileID: 0}
   m_RootOrder: 20
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -13371,6 +13372,11 @@ Transform:
   m_Father: {fileID: 206833388}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!224 &477168438 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+  m_PrefabInstance: {fileID: 1818280783}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &483137837
 GameObject:
   m_ObjectHideFlags: 0
@@ -27722,6 +27728,9 @@ MonoBehaviour:
   UpperMenueAnimation: {fileID: 2792659806323191067}
   interstitialAdController: {fileID: 750151767}
   gameStartDelay: 1
+  powerupcontroller: {fileID: 1418429561}
+  magnetForce: 10
+  magnetRange: 3
 --- !u!61 &1418429542
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -29149,6 +29158,7 @@ MonoBehaviour:
   invincibilityDuration: 3
   blinkSpeed: 0.1
   slowFallMultiplier: 0.5
+  timeIncreaseAmount: 4
 --- !u!1 &1418999354
 GameObject:
   m_ObjectHideFlags: 0
@@ -31083,6 +31093,107 @@ RectTransform:
   m_AnchoredPosition: {x: 472, y: -0.2944336}
   m_SizeDelta: {x: 177.16309, y: 82}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1001 &1818280783
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 305862696}
+    m_Modifications:
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_RootOrder
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 268.7221
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -390
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7582544501326989900, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7641554180460136405, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
+      propertyPath: m_Name
+      value: CardTimer
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 564235f9c7a1b0f4eaf224f657562d20, type: 3}
 --- !u!1 &1831262482
 GameObject:
   m_ObjectHideFlags: 0
@@ -34301,10 +34412,12 @@ MonoBehaviour:
   - PowerUpShield
   - PowerUpSlow
   - PowerUpSMagnet
+  - PowerUpTimerPlus
   powerSprites:
   - {fileID: 21300000, guid: 9ca3c054b915a0249a1b0ac02d24b2e1, type: 3}
   - {fileID: 21300000, guid: 58a87113d751bc946bdc325d8c1eb8e7, type: 3}
   - {fileID: 21300000, guid: 57ca4b3ef9625694e9aff446c50379cb, type: 3}
+  - {fileID: 21300000, guid: 1fab5a4b7ec4da44d9d49fca8472dc30, type: 3}
   powerUpController: {fileID: 1418429561}
   slot1Power: 
   slot2Power: 

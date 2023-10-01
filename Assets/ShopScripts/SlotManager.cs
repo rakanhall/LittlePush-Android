@@ -222,6 +222,16 @@ public class SlotManager : MonoBehaviour
         {
             powerUpController.ActivateSlowFall();
         }
+
+        if (powerName == "PowerUpTimerPlus")
+        {
+            powerUpController.ActivateTimerPlus();
+        }
+
+        if (powerName == "PowerUpSMagnet")
+        {
+            powerUpController.ActivateMagnet();
+        }
         // Handle other powers as you add them in the future
     }
 

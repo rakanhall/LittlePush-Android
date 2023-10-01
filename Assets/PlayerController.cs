@@ -73,6 +73,8 @@ public class PlayerController : MonoBehaviour
     public Animator UpperMenueAnimation;
     public InterstitialAdController interstitialAdController;
     public float gameStartDelay = 2.0f;
+    public PowerUpController powerupcontroller;
+
     private Rigidbody2D rb;
     private BoxCollider2D boxCollider;
     private bool isGrounded;
@@ -136,6 +138,12 @@ public class PlayerController : MonoBehaviour
             }
             HandleKeyboardInput();
         }
+
+        if (powerupcontroller.IsMagnetActive())
+        {
+            AttractCoins();
+        }
+
         HandleMovement();
     }
 
@@ -470,6 +478,24 @@ public class PlayerController : MonoBehaviour
     public void ResetFallingSpeed()
     {
         currentMaxFallSpeed = initialMaxFallSpeed;
+    }
+
+    public float magnetForce = 5f; // The force with which coins are attracted. Adjust as needed.
+    public float magnetRange = 3f; // The radius within which coins will be attracted. Adjust as needed.
+
+    private void AttractCoins()
+    {
+        // Find all coins within the magnet range
+        Collider2D[] coinsInRange = Physics2D.OverlapCircleAll(transform.position, magnetRange, LayerMask.GetMask("Coin"));
+        foreach (var coin in coinsInRange)
+        {
+            Rigidbody2D coinRb = coin.GetComponent<Rigidbody2D>();
+            if (coinRb)
+            {
+                Vector2 direction = (transform.position - coin.transform.position).normalized;
+                coinRb.velocity = direction * magnetForce;
+            }
+        }
     }
 
 

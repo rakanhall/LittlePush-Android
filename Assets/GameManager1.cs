@@ -20,7 +20,7 @@ public class GameManager1 : MonoBehaviour
     public AudioSource TimerSound;
     public float activationDelay = 0.6f;
     public float activationScoreLimit = 0.6f;
-    public float timerValue = 15.0f;
+    public float timerValue = 16.0f;
     public PlayerController playerController;
     public PowerUpController powerupcontroller;
     public Camera mainCamera;
@@ -33,6 +33,7 @@ public class GameManager1 : MonoBehaviour
     public GameObject clouds;
     public GameObject birds;
 
+    private float baseTimerValue = 16.0f;
     private Animator cameraAnimator;
     private SpriteRenderer[] dayCityRenderers;
     private SpriteRenderer[] nightCityRenderers;
@@ -185,8 +186,14 @@ public class GameManager1 : MonoBehaviour
 
     public void ResetTimer()
     {
-        timerValue = 16.0f;
+        timerValue = baseTimerValue;
         TimerSound.Play();
+    }
+
+    public void AddTimeToTimer(float amount)
+    {
+        baseTimerValue += amount; // Modify the base timer value
+        timerValue += amount;
     }
 
     public void StartGame()

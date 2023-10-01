@@ -20,6 +20,10 @@ public class PowerUpController : MonoBehaviour
     public float slowFallMultiplier = 0.5f; // This multiplies the falling speed by half (or 50% reduction in speed)
     private bool isSlowFallingActive = false;
 
+    public float timeIncreaseAmount = 5f; // Time to add to the timer when the power-up is activated.
+
+    private bool isMagnetActive = false;
+
     void Start()
     {
         shieldSprite = transform.Find(shieldName).gameObject;
@@ -137,6 +141,26 @@ public class PowerUpController : MonoBehaviour
     public bool IsSlowFallingActive()
     {
         return isSlowFallingActive;
+    }
+
+    public void ActivateTimerPlus()
+    {
+        GameManager1.instance.AddTimeToTimer(timeIncreaseAmount);
+    }
+
+    public void ActivateMagnet()
+    {
+        isMagnetActive = true;
+    }
+
+    public void DeactivateMagnet()
+    {
+        isMagnetActive = false;
+    }
+
+    public bool IsMagnetActive()
+    {
+        return isMagnetActive;
     }
 }
 
