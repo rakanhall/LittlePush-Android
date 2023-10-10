@@ -5,6 +5,12 @@ using System.Collections.Generic;
 public class PowerUpController : MonoBehaviour
 {
     public PlayerController playerController; // Reference to the PlayerController
+    public CoinManager coinManager;
+
+    public string magnetCoinsUpgradeName;
+    public string magnetTimerUpgradeName;
+    public string coinUpgradeName;
+
     public AudioSource ShieldBreakSound;
     public AudioSource ShieldButtonSound;
     public ParticleSystem ShieldBreak;
@@ -23,6 +29,13 @@ public class PowerUpController : MonoBehaviour
     public float timeIncreaseAmount = 5f; // Time to add to the timer when the power-up is activated.
 
     private bool isMagnetActive = false;
+    public float magnetForce = 5f; // The force with which coins are attracted. Adjust as needed.
+    public float magnetRange = 3f; // The radius within which coins will be attracted. Adjust as needed.
+
+    public float magnetForceTimer = 5f; // The force with which coins are attracted. Adjust as needed.
+    public float magnetRangeTimer = 3f; // The radius within which coins will be attracted. Adjust as needed.
+
+    private bool isMagnetTActive = false;
 
     void Start()
     {
@@ -41,6 +54,11 @@ public class PowerUpController : MonoBehaviour
             shieldSprite.SetActive(false); // Disable the shield sprite
             ShieldButton.SetActive(true);
         }
+
+
+        ActivateMagnet();
+        ActivateMagnetTimer();
+        UpdateCoinMultiplier();
     }
 
     public void EnableShield()
@@ -150,17 +168,95 @@ public class PowerUpController : MonoBehaviour
 
     public void ActivateMagnet()
     {
-        isMagnetActive = true;
-    }
+        int magnetLevel = PlayerPrefs.GetInt(magnetCoinsUpgradeName + "_CurrentLevel", 0);
 
-    public void DeactivateMagnet()
-    {
-        isMagnetActive = false;
+        if (magnetLevel == 0) // If magnet is not unlocked yet
+        {
+            return; // Exit the method without activating the magnet
+        }
+
+        isMagnetActive = true;
+
+        // Adjust the magnet's effects based on its level
+        switch (magnetLevel)
+        {
+            case 1:
+                magnetForce = 5f;
+                magnetRange = 1f;
+                break;
+            case 2:
+                magnetForce = 10f;
+                magnetRange = 2f;
+                break;
+            case 3:
+                magnetForce = 15f;
+                magnetRange = 3f;
+                break;
+            default:
+                break;
+        }
     }
 
     public bool IsMagnetActive()
     {
         return isMagnetActive;
+    }
+
+    public void ActivateMagnetTimer()
+    {
+        int magnetLevel = PlayerPrefs.GetInt(magnetTimerUpgradeName + "_CurrentLevel", 0);
+
+        if (magnetLevel == 0) // If magnet is not unlocked yet
+        {
+            return; // Exit the method without activating the magnet
+        }
+
+        isMagnetTActive = true;
+
+        // Adjust the magnet's effects based on its level
+        switch (magnetLevel)
+        {
+            case 1:
+                magnetForceTimer = 5f;
+                magnetRangeTimer = 1f;
+                break;
+            case 2:
+                magnetForceTimer = 10f;
+                magnetRangeTimer = 2f;
+                break;
+            case 3:
+                magnetForceTimer = 15f;
+                magnetRangeTimer = 3f;
+                break;
+            default:
+                break;
+        }
+    }
+
+    public bool IsMagnetTimerActive()
+    {
+        return isMagnetTActive;
+    }
+
+    public void UpdateCoinMultiplier()
+    {
+        int coinUpgradeLevel = PlayerPrefs.GetInt(coinUpgradeName + "_CurrentLevel", 0);
+
+        switch (coinUpgradeLevel)
+        {
+            case 1:
+                CoinManager.instance.coinMultiplier = 2; // Double the coins
+                break;
+            case 2:
+                CoinManager.instance.coinMultiplier = 3; // Triple the coins
+                break;
+            case 3:
+                CoinManager.instance.coinMultiplier = 4; // And so on...
+                break;
+            default:
+                CoinManager.instance.coinMultiplier = 1; // Default value (no upgrade)
+                break;
+        }
     }
 }
 

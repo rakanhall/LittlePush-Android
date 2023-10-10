@@ -6,7 +6,7 @@ using System.Collections.Generic; // Add this at the top of your script
 
 
 public class PlayerController : MonoBehaviour
-{    
+{
     // Player Stats
     [Header("Player Stats")]
     public float speed = 10f;
@@ -95,17 +95,20 @@ public class PlayerController : MonoBehaviour
     private RaycastHit2D wallHit;
     private float initialMaxFallSpeed = -16f;
     private float currentMaxFallSpeed;
+    private bool tripleJumpEnabled = false; // Add this to your variables
+    private int jumpCount = 0; // Add this to your variables
+
 
     private void Start()
-    {      
+    {
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-       
+
         rb.isKinematic = true;
         tapToPlayText.SetActive(true);
-        
+
         StartButton.SetActive(true);  // Start button is visible initially
         RetryButton.SetActive(false);  // Retry button is invisible initially
         RetryImage.SetActive(false);  // Retry image is invisible initially
@@ -142,6 +145,11 @@ public class PlayerController : MonoBehaviour
         if (powerupcontroller.IsMagnetActive())
         {
             AttractCoins();
+        }
+
+        if (powerupcontroller.IsMagnetTimerActive())
+        {
+            AttractTimer();
         }
 
         HandleMovement();
@@ -202,10 +210,12 @@ public class PlayerController : MonoBehaviour
             timeInAir = 0f;
         }
 
+        // Inside CheckEnvironment()
         if (isGrounded || isTouchingWall)
         {
-            doubleJumped = false;
+            jumpCount = 0;
         }
+
         if (isTouchingWall && isGrounded && !hasHitWallSoundPlayed)
         {
             HitWallSound.Play();
@@ -217,7 +227,7 @@ public class PlayerController : MonoBehaviour
         else if (!isTouchingWall || !isGrounded)
         {
             hasHitWallSoundPlayed = false;
-        } 
+        }
 
     }
 
@@ -289,7 +299,7 @@ public class PlayerController : MonoBehaviour
     private void Jump()
     {
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-        JumpSound.Play();        
+        JumpSound.Play();
     }
 
     private void DoubleJump()
@@ -297,14 +307,16 @@ public class PlayerController : MonoBehaviour
         if (isGrounded)
         {
             Jump();
+            jumpCount = 0; // Reset jump count to 1 after landing on the ground and jumping again
         }
-        else if (!doubleJumped)
+        else if (jumpCount < 1 || (tripleJumpEnabled && jumpCount < 2)) // Modify this line
         {
             rb.velocity = new Vector2(rb.velocity.x, doubleJumpForce);
-            doubleJumped = true;
+            jumpCount++; // Increase jump count
             DoubleJumpSound.Play();
         }
     }
+
 
     private void WallJump()
     {
@@ -346,7 +358,7 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("isJumping", rb.velocity.y > 0 && !isWallSliding && !isTouchingWall);
         animator.SetBool("isFalling", rb.velocity.y < 0);
         animator.SetBool("isSliding", isWallSliding && isTouchingWall);
-        animator.SetBool("IsIdle", isGrounded && Mathf.Abs(rb.velocity.x) < 0.1f);        
+        animator.SetBool("IsIdle", isGrounded && Mathf.Abs(rb.velocity.x) < 0.1f);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -370,7 +382,7 @@ public class PlayerController : MonoBehaviour
             if (pusherAnimator != null)
             {
                 pusherAnimator.SetBool("Run", false);
-            }       
+            }
         }
     }
 
@@ -378,9 +390,9 @@ public class PlayerController : MonoBehaviour
     {
         isGameActive = true;
     }
-   
+
     public void Die()
-    {    
+    {
         IsDead = true;
         GetComponent<SpriteRenderer>().enabled = false;
         GetComponent<Collider2D>().enabled = false;
@@ -451,13 +463,13 @@ public class PlayerController : MonoBehaviour
     }
 
     public void OnRetryButtonClicked()
-    {        
-        RetryGame();       
+    {
+        RetryGame();
     }
 
     public void RetryGame()
-    {       
-        GameManager1.instance.ReloadScene();       
+    {
+        GameManager1.instance.ReloadScene();
     }
 
     void CreateDust()
@@ -480,26 +492,89 @@ public class PlayerController : MonoBehaviour
         currentMaxFallSpeed = initialMaxFallSpeed;
     }
 
-    public float magnetForce = 5f; // The force with which coins are attracted. Adjust as needed.
-    public float magnetRange = 3f; // The radius within which coins will be attracted. Adjust as needed.
-
-    private void AttractCoins()
+    public void AttractCoins()
     {
         // Find all coins within the magnet range
-        Collider2D[] coinsInRange = Physics2D.OverlapCircleAll(transform.position, magnetRange, LayerMask.GetMask("Coin"));
+        Collider2D[] coinsInRange = Physics2D.OverlapCircleAll(transform.position, powerupcontroller.magnetRange, LayerMask.GetMask("Coin"));
         foreach (var coin in coinsInRange)
         {
             Rigidbody2D coinRb = coin.GetComponent<Rigidbody2D>();
             if (coinRb)
             {
                 Vector2 direction = (transform.position - coin.transform.position).normalized;
-                coinRb.velocity = direction * magnetForce;
+                coinRb.velocity = direction * powerupcontroller.magnetForce;
             }
         }
     }
 
+    public void AttractTimer()
+    {
+        // Find all coins within the magnet range
+        Collider2D[] coinsInRange = Physics2D.OverlapCircleAll(transform.position, powerupcontroller.magnetRangeTimer, LayerMask.GetMask("Timer"));
+        foreach (var coin in coinsInRange)
+        {
+            Rigidbody2D coinRb = coin.GetComponent<Rigidbody2D>();
+            if (coinRb)
+            {
+                Vector2 direction = (transform.position - coin.transform.position).normalized;
+                coinRb.velocity = direction * powerupcontroller.magnetForceTimer;
+            }
+        }
+    }
+
+    public void EnableTripleJump()
+    {
+        tripleJumpEnabled = true;
+    }
+
+    public void DisableTripleJump()
+    {
+        tripleJumpEnabled = false;
+    }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

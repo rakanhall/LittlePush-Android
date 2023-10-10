@@ -7,6 +7,9 @@ public class SlotManager : MonoBehaviour
 {
     public static SlotManager instance;
 
+    public Image slot1;
+    public Image slot2;
+
     [Header("Slot UI")]
     public Image slot1Image;
     public Image slot2Image;
@@ -29,11 +32,18 @@ public class SlotManager : MonoBehaviour
     [Header("PowerUp Controller")]
     public PowerUpController powerUpController;
 
+    [Header("PlayerController")]
+    public PlayerController playercontroller;
 
     [HideInInspector]
     public string slot1Power = "";
     [HideInInspector]
     public string slot2Power = "";
+
+    public Button plusButton; // The button to add another slot. Link this in the Unity inspector.
+
+    private int availableSlots = 1;  // Default to 1 available slot.
+
 
     private void Awake()
     {
@@ -53,6 +63,13 @@ public class SlotManager : MonoBehaviour
             powerUpIcons.Add(powerNames[i], powerSprites[i]);
         }
 
+        slot2.gameObject.SetActive(false); // Disable the second slot initially
+        gameplayButton2.gameObject.SetActive(false); // Disable its gameplay button as well
+        gameplayButton2Text.gameObject.SetActive(false); // Disable the text too if it's separate
+
+        plusButton.onClick.AddListener(UnlockSecondSlot);
+
+        LoadSlotState();
         LoadSlotState();
         UpdateSlotImages();
         UpdateGameplayButtons();
@@ -64,20 +81,14 @@ public class SlotManager : MonoBehaviour
 
         bool equipped = false;
 
-        if (spaceRequired == 2 && string.IsNullOrEmpty(slot1Power) && string.IsNullOrEmpty(slot2Power))
-        {
-            slot1Power = powerName;
-            slot2Power = powerName;  // Occupy both slots with the same power
-            equipped = true;
-        }
-        else if (spaceRequired == 1)
+        if (spaceRequired == 1)
         {
             if (string.IsNullOrEmpty(slot1Power))
             {
                 slot1Power = powerName;
                 equipped = true;
             }
-            else if (string.IsNullOrEmpty(slot2Power))
+            else if (availableSlots == 2 && string.IsNullOrEmpty(slot2Power))
             {
                 slot2Power = powerName;
                 equipped = true;
@@ -131,18 +142,22 @@ public class SlotManager : MonoBehaviour
         }
 
         // Button 2
-        int slot2Quantity = PlayerPrefs.GetInt(slot2Power + "_Quantity", 0);
-        if (!string.IsNullOrEmpty(slot2Power) && slot1Power != slot2Power && slot2Quantity > 0)
+        if (availableSlots == 2)
         {
-            gameplayButton2.gameObject.SetActive(true);
-            gameplayButton2.onClick.RemoveAllListeners();
-            gameplayButton2.onClick.AddListener(() => UsePower(slot2Power));
-            gameplayButton2Text.text = slot2Quantity.ToString(); // Update the text component
+            int slot2Quantity = PlayerPrefs.GetInt(slot2Power + "_Quantity", 0);
+            if (!string.IsNullOrEmpty(slot2Power) && slot1Power != slot2Power && slot2Quantity > 0)
+            {
+                gameplayButton2.gameObject.SetActive(true);
+                gameplayButton2.onClick.RemoveAllListeners();
+                gameplayButton2.onClick.AddListener(() => UsePower(slot2Power));
+                gameplayButton2Text.text = slot2Quantity.ToString(); // Update the text component
+            }
+            else
+            {
+                gameplayButton2.gameObject.SetActive(false);
+            }
         }
-        else
-        {
-            gameplayButton2.gameObject.SetActive(false);
-        }
+
     }
 
     private void UpdateSlotImages()
@@ -228,9 +243,9 @@ public class SlotManager : MonoBehaviour
             powerUpController.ActivateTimerPlus();
         }
 
-        if (powerName == "PowerUpSMagnet")
+        if (powerName == "PowerUpTriple")
         {
-            powerUpController.ActivateMagnet();
+            playercontroller.EnableTripleJump();
         }
         // Handle other powers as you add them in the future
     }
@@ -245,13 +260,38 @@ public class SlotManager : MonoBehaviour
     {
         slot1Power = PlayerPrefs.GetString("Slot1Power", "");
         slot2Power = PlayerPrefs.GetString("Slot2Power", "");
+
+        // Load available slots from PlayerPrefs
+        availableSlots = PlayerPrefs.GetInt("AvailableSlots", 1);  // Defaults to 1 if not set
+
+        // Check if slot2 has a power or if available slots are set to 2, and adjust the UI
+        if (!string.IsNullOrEmpty(slot2Power) || availableSlots == 2)
+        {
+            slot2.gameObject.SetActive(true);
+            plusButton.gameObject.SetActive(false);  // Hide the '+' button
+            gameplayButton2Text.gameObject.SetActive(true); // Enable the text too if it's separate
+        }
     }
+
+
 
     public void ClearSlotData()
     {
         PlayerPrefs.DeleteKey("Slot1Power");
         PlayerPrefs.DeleteKey("Slot2Power");
     }
+
+    public void UnlockSecondSlot()
+    {
+        availableSlots = 2;
+        PlayerPrefs.SetInt("AvailableSlots", availableSlots);  // Save the updated availableSlots to PlayerPrefs
+        PlayerPrefs.Save();  // Ensure that the data is written immediately to disk
+        slot2.gameObject.SetActive(true); // Enable the second slot
+        plusButton.gameObject.SetActive(false); // Hide the '+' button once the second slot is unlocked
+        gameplayButton2Text.gameObject.SetActive(true); // Enable the text too if it's separate
+    }
+
+
 }
 
 

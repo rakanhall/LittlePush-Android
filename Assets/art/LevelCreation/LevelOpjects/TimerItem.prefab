@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 6447653077761243636}
   - component: {fileID: 1349588045781096114}
   - component: {fileID: 7639622505330161804}
-  m_Layer: 10
+  m_Layer: 11
   m_Name: TimerItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}

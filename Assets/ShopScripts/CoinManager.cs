@@ -10,6 +10,7 @@ public class CoinManager : MonoBehaviour
     public TextMeshProUGUI totalCoinsText;
     public TextMeshProUGUI gameplayCoinsText;
     public TextMeshProUGUI gameplayCoinsTextEndMenu;
+    public int coinMultiplier = 1;
 
     private void Awake()
     {
@@ -28,8 +29,8 @@ public class CoinManager : MonoBehaviour
 
     public void CollectCoin()
     {
-        coinsThisGame += 1;
-        totalCoins += 1;
+        coinsThisGame += coinMultiplier;
+        totalCoins += coinMultiplier;
 
         if (gameplayCoinsText != null)
             gameplayCoinsText.text = coinsThisGame.ToString();
