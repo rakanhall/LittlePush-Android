@@ -14,7 +14,6 @@ public class PowerUpController : MonoBehaviour
     public AudioSource ShieldBreakSound;
     public AudioSource ShieldButtonSound;
     public ParticleSystem ShieldBreak;
-    public GameObject ShieldButton;
     public string shieldName;
     public float invincibilityDuration = 3f;
     public float blinkSpeed = 0.1f;
@@ -47,12 +46,10 @@ public class PowerUpController : MonoBehaviour
         if (hasShield)
         {
             shieldSprite.SetActive(true); // Enable the shield sprite
-            ShieldButton.SetActive(false);
         }
         else
         {
             shieldSprite.SetActive(false); // Disable the shield sprite
-            ShieldButton.SetActive(true);
         }
 
 

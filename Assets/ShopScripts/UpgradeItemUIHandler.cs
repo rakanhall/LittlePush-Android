@@ -16,7 +16,8 @@ public class UpgradeItemUIHandler : MonoBehaviour
     public TextMeshProUGUI levelText;
     public TextMeshProUGUI upgradePriceText;
 
-
+    public Animator MessageAnimation;
+    public GameObject BlackScreen;
 
     private void Start()
     {
@@ -34,7 +35,7 @@ public class UpgradeItemUIHandler : MonoBehaviour
             CoinManager.instance.totalCoins -= upgradeCosts[0];
             isUnlocked = true;
             currentLevel = 1;
-
+    
             CoinManager.instance.SaveCoins();
             CoinManager.instance.UpdateCoinTexts();
 
@@ -42,8 +43,16 @@ public class UpgradeItemUIHandler : MonoBehaviour
             PlayerPrefs.SetInt(upgradeName + "_CurrentLevel", currentLevel);
 
         }
+        else
+        {
+            Debug.Log("Unlocking failed. Either already unlocked or insufficient coins.");
+
+            MessageAnimation.SetTrigger("Open");
+            BlackScreen.SetActive(true);
+        }
 
         UpdateUI();
+
     }
 
     public void UpgradeItem()
@@ -57,6 +66,13 @@ public class UpgradeItemUIHandler : MonoBehaviour
             CoinManager.instance.UpdateCoinTexts();
 
             PlayerPrefs.SetInt(upgradeName + "_CurrentLevel", currentLevel);
+        }
+        else
+        {
+            Debug.Log("Unlocking failed. Either already unlocked or insufficient coins.");
+
+            MessageAnimation.SetTrigger("Open");
+            BlackScreen.SetActive(true);
         }
 
         UpdateUI();

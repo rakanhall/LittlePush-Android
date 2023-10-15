@@ -11,6 +11,7 @@ public class CoinManager : MonoBehaviour
     public TextMeshProUGUI gameplayCoinsText;
     public TextMeshProUGUI gameplayCoinsTextEndMenu;
     public int coinMultiplier = 1;
+    public AudioSource CoinsSound;
 
     private void Awake()
     {
@@ -37,7 +38,7 @@ public class CoinManager : MonoBehaviour
 
         if (gameplayCoinsTextEndMenu != null)
             gameplayCoinsTextEndMenu.text = coinsThisGame.ToString();
-
+        CoinsSound.Play();
         SaveCoins();
     }
 

@@ -44,6 +44,7 @@ public class SlotManager : MonoBehaviour
 
     private int availableSlots = 1;  // Default to 1 available slot.
 
+    public AudioSource slotAddSound;
 
     private void Awake()
     {
@@ -289,6 +290,7 @@ public class SlotManager : MonoBehaviour
         slot2.gameObject.SetActive(true); // Enable the second slot
         plusButton.gameObject.SetActive(false); // Hide the '+' button once the second slot is unlocked
         gameplayButton2Text.gameObject.SetActive(true); // Enable the text too if it's separate
+        slotAddSound.Play();
     }
 
 

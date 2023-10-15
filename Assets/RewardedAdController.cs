@@ -9,7 +9,8 @@ namespace GoogleMobileAds.Sample
     [AddComponentMenu("GoogleMobileAds/Samples/RewardedAdController")]
     public class RewardedAdController : MonoBehaviour
     {
-        public PowerUpController powerupcontroller;
+        public CoinManager coinManager;
+        public int coinRewardAmount = 50;  // or whatever amount you choose
         public Button rewardButton; // Reference to the button
 
         public bool IsAdLoaded
@@ -78,7 +79,14 @@ namespace GoogleMobileAds.Sample
                         Debug.Log(string.Format("Rewarded ad granted a reward: {0} {1}",
                                                 reward.Amount,
                                                 reward.Type));
-                        powerupcontroller.EnableShield();
+
+                        for (int i = 0; i < coinRewardAmount; i++)
+                        {
+                            coinManager.CollectCoin();
+                        }
+                        coinManager.UpdateCoinTexts();
+
+
                         _adLoaded = false;  // Reset this flag only when ad is shown successfully
                         LoadAd();  // Load next ad immediately after showing the current one
                     });

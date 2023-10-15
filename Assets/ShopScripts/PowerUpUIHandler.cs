@@ -20,10 +20,11 @@ public class PowerUpUIHandler : MonoBehaviour
     public TextMeshProUGUI powerUpQuantityText;
     public TextMeshProUGUI unlockPriceText;
     public TextMeshProUGUI buyPriceText;
- 
 
     public int slotSpaceRequired = 1; // Define how much space this power requires. 1 or 2.
 
+    public Animator MessageAnimation;
+    public GameObject BlackScreen;
 
     private void Start()
     {
@@ -60,6 +61,8 @@ public class PowerUpUIHandler : MonoBehaviour
         else
         {
             Debug.Log("Unlocking failed. Either already unlocked or insufficient coins.");
+            MessageAnimation.SetTrigger("Open");
+            BlackScreen.SetActive(true);
         }
 
         UpdateUI();
@@ -84,6 +87,8 @@ public class PowerUpUIHandler : MonoBehaviour
         else
         {
             Debug.Log("Purchase failed. Either not unlocked or insufficient coins.");
+            MessageAnimation.SetTrigger("Open");
+            BlackScreen.SetActive(true);
         }
 
         UpdateUI();
@@ -105,6 +110,7 @@ public class PowerUpUIHandler : MonoBehaviour
         {
             Debug.Log("Failed to equip power: " + powerUpName);
         }
+
     }
 
     public void UnequipPowerUp()
@@ -130,16 +136,24 @@ public class PowerUpUIHandler : MonoBehaviour
     {
         unlockButton.gameObject.SetActive(!IsUnlocked);
         buyButton.gameObject.SetActive(IsUnlocked);
-        equipButton.gameObject.SetActive(IsUnlocked && !IsEquipped);
-        unequipButton.gameObject.SetActive(IsUnlocked && IsEquipped);
+
+        // Explicitly check if the power-up is unlocked
+        if (IsUnlocked)
+        {
+            equipButton.gameObject.SetActive(!IsEquipped);  // Show equip button if not equipped and power-up is unlocked
+            unequipButton.gameObject.SetActive(IsEquipped);  // Show unequip button if equipped and power-up is unlocked
+        }
+        else
+        {
+            equipButton.gameObject.SetActive(false);  // Ensure equip button is always off if power-up is not unlocked
+            unequipButton.gameObject.SetActive(false); // Ensure unequip button is always off if power-up is not unlocked
+        }
 
         unlockPriceText.text = UnlockCost.ToString();
         buyPriceText.text = PurchaseCost.ToString();
         powerUpQuantityText.text = Quantity.ToString();
-
-        equipButton.gameObject.SetActive(!IsEquipped);  // Show equip button if not equipped
-        unequipButton.gameObject.SetActive(IsEquipped);  // Show unequip button if equipped
     }
+
 }
 
 
