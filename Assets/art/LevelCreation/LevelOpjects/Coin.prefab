@@ -115,6 +115,10 @@ MonoBehaviour:
   probability: 0.9
   spriteRenderer: {fileID: 6650822377837544890}
   circleCollider2D: {fileID: 1171401037160308899}
+  levitationHeight: 0.1
+  levitationSpeed: 2
+  plusOneTextPrefab: {fileID: 1194812217019148441, guid: 70d982c5f77c51341b5746525786a127, type: 3}
+  coinManager: {fileID: 9214894712602863592, guid: 005b4d2345627864d847b1f445d5d4f5, type: 3}
 --- !u!58 &1171401037160308899
 CircleCollider2D:
   m_ObjectHideFlags: 0

@@ -68,8 +68,6 @@ public class SlotManager : MonoBehaviour
         gameplayButton2.gameObject.SetActive(false); // Disable its gameplay button as well
         gameplayButton2Text.gameObject.SetActive(false); // Disable the text too if it's separate
 
-        plusButton.onClick.AddListener(UnlockSecondSlot);
-
         LoadSlotState();
         LoadSlotState();
         UpdateSlotImages();

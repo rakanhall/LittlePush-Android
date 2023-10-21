@@ -73,5 +73,21 @@ public class CoinManager : MonoBehaviour
         if (gameplayCoinsTextEndMenu != null)
             gameplayCoinsTextEndMenu.text = coinsThisGame.ToString();
     }
+
+    public int GetCoinMultiplier()
+    {
+        return coinMultiplier;
+    }
+
+    public void AddCoins(int coinAmount)
+    {
+        totalCoins += coinAmount;
+        SaveCoins();
+        UpdateCoinTexts();
+    }
+
+
 }
+
+
 
