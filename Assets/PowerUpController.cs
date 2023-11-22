@@ -4,15 +4,15 @@ using System.Collections.Generic;
 
 public class PowerUpController : MonoBehaviour
 {
+    public static PowerUpController instance;
+
     public PlayerController playerController; // Reference to the PlayerController
     public CoinManager coinManager;
 
     public string magnetCoinsUpgradeName;
-    public string magnetTimerUpgradeName;
     public string coinUpgradeName;
 
     public AudioSource ShieldBreakSound;
-    public AudioSource ShieldButtonSound;
     public ParticleSystem ShieldBreak;
     public string shieldName;
     public float invincibilityDuration = 3f;
@@ -30,18 +30,37 @@ public class PowerUpController : MonoBehaviour
     private bool isMagnetActive = false;
     public float magnetForce = 5f; // The force with which coins are attracted. Adjust as needed.
     public float magnetRange = 3f; // The radius within which coins will be attracted. Adjust as needed.
+    public float magnetDuration = 5f; // Duration of the magnet effect, in seconds
+    private Coroutine deactivateMagnetCoroutine;
 
-    public float magnetForceTimer = 5f; // The force with which coins are attracted. Adjust as needed.
-    public float magnetRangeTimer = 3f; // The radius within which coins will be attracted. Adjust as needed.
+    public float CoinMDuration = 5f;
+    private Coroutine deactivateCoinMCoroutine;
+    private bool isCoinMultiplayerActive = false;
 
-    private bool isMagnetTActive = false;
+    private float magnetElapsedTime = 0f;
+    private float coinMultiplierElapsedTime = 0f;
+
+    public AudioSource powerUpSound;
+    public AudioSource UpgradesUpSound;
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            Destroy(gameObject);
+        }
+    }
 
     void Start()
     {
         shieldSprite = transform.Find(shieldName).gameObject;
         spriteRenderer = GetComponent<SpriteRenderer>();
 
-       
+
 
         if (hasShield)
         {
@@ -51,18 +70,13 @@ public class PowerUpController : MonoBehaviour
         {
             shieldSprite.SetActive(false); // Disable the shield sprite
         }
-
-
-        ActivateMagnet();
-        ActivateMagnetTimer();
-        UpdateCoinMultiplier();
     }
 
     public void EnableShield()
     {
         hasShield = true;
         shieldSprite.SetActive(true); // Enable the shield sprite
-        ShieldButtonSound.Play();
+        powerUpSound.Play();
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -145,6 +159,7 @@ public class PowerUpController : MonoBehaviour
     {
         isSlowFallingActive = true;
         playerController.AdjustFallingSpeed(slowFallMultiplier);
+        powerUpSound.Play();
     }
 
     public void DeactivateSlowFall()
@@ -161,17 +176,14 @@ public class PowerUpController : MonoBehaviour
     public void ActivateTimerPlus()
     {
         GameManager1.instance.AddTimeToTimer(timeIncreaseAmount);
+        powerUpSound.Play();
     }
 
     public void ActivateMagnet()
     {
         int magnetLevel = PlayerPrefs.GetInt(magnetCoinsUpgradeName + "_CurrentLevel", 0);
 
-        if (magnetLevel == 0) // If magnet is not unlocked yet
-        {
-            return; // Exit the method without activating the magnet
-        }
-
+        UpgradesUpSound.Play();
         isMagnetActive = true;
 
         // Adjust the magnet's effects based on its level
@@ -180,18 +192,46 @@ public class PowerUpController : MonoBehaviour
             case 1:
                 magnetForce = 5f;
                 magnetRange = 1f;
+                magnetDuration = 5f;
                 break;
             case 2:
-                magnetForce = 10f;
+                magnetForce = 5f;
                 magnetRange = 2f;
+                magnetDuration = 7f;
                 break;
             case 3:
+                magnetForce = 10f;
+                magnetRange = 2f;
+                magnetDuration = 9f;
+                break;
+            case 4:
+                magnetForce = 10f;
+                magnetRange = 3f;
+                magnetDuration = 11f;
+                break;
+            case 5:
                 magnetForce = 15f;
                 magnetRange = 3f;
+                magnetDuration = 13f;
+                break;
+            case 6:
+                magnetForce = 15f;
+                magnetRange = 4f;
+                magnetDuration = 15f;
                 break;
             default:
                 break;
         }
+
+        magnetElapsedTime = 0f; // Reset elapsed time
+
+        if (deactivateMagnetCoroutine != null)
+        {
+            StopCoroutine(deactivateMagnetCoroutine);
+        }
+
+        // Start a new coroutine to deactivate the magnet
+        deactivateMagnetCoroutine = StartCoroutine(DeactivateMagnetAfterDelay());
     }
 
     public bool IsMagnetActive()
@@ -199,61 +239,89 @@ public class PowerUpController : MonoBehaviour
         return isMagnetActive;
     }
 
-    public void ActivateMagnetTimer()
+    public float GetMagnetRemainingTime()
     {
-        int magnetLevel = PlayerPrefs.GetInt(magnetTimerUpgradeName + "_CurrentLevel", 0);
-
-        if (magnetLevel == 0) // If magnet is not unlocked yet
-        {
-            return; // Exit the method without activating the magnet
-        }
-
-        isMagnetTActive = true;
-
-        // Adjust the magnet's effects based on its level
-        switch (magnetLevel)
-        {
-            case 1:
-                magnetForceTimer = 5f;
-                magnetRangeTimer = 1f;
-                break;
-            case 2:
-                magnetForceTimer = 10f;
-                magnetRangeTimer = 2f;
-                break;
-            case 3:
-                magnetForceTimer = 15f;
-                magnetRangeTimer = 3f;
-                break;
-            default:
-                break;
-        }
+        return Mathf.Max(magnetDuration - magnetElapsedTime, 0);
     }
 
-    public bool IsMagnetTimerActive()
+    private IEnumerator DeactivateMagnetAfterDelay()
     {
-        return isMagnetTActive;
+        while (magnetElapsedTime < magnetDuration)
+        {
+            magnetElapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        isMagnetActive = false;
     }
 
     public void UpdateCoinMultiplier()
     {
         int coinUpgradeLevel = PlayerPrefs.GetInt(coinUpgradeName + "_CurrentLevel", 0);
 
+        isCoinMultiplayerActive = true;
+        UpgradesUpSound.Play();
+
         switch (coinUpgradeLevel)
         {
             case 1:
                 CoinManager.instance.coinMultiplier = 2; // Double the coins
+                CoinMDuration = 5f;
                 break;
             case 2:
                 CoinManager.instance.coinMultiplier = 3; // Triple the coins
+                CoinMDuration = 7f;
                 break;
             case 3:
                 CoinManager.instance.coinMultiplier = 4; // And so on...
+                CoinMDuration = 9f;
+                break;
+            case 4:
+                CoinManager.instance.coinMultiplier = 5; // And so on...
+                CoinMDuration = 11f;
+                break;
+            case 5:
+                CoinManager.instance.coinMultiplier = 6; // And so on...
+                CoinMDuration = 13f;
+                break;
+            case 6:
+                CoinManager.instance.coinMultiplier = 7; // And so on...
+                CoinMDuration = 15f;
                 break;
             default:
-                CoinManager.instance.coinMultiplier = 1; // Default value (no upgrade)
+                CoinManager.instance.coinMultiplier = 2;
+                CoinMDuration = 5f;
                 break;
         }
+
+        coinMultiplierElapsedTime = 0f; // Reset elapsed time
+
+        if (deactivateCoinMCoroutine != null)
+        {
+            StopCoroutine(deactivateCoinMCoroutine);
+        }
+
+        // Start a new coroutine to deactivate the magnet
+        deactivateCoinMCoroutine = StartCoroutine(DeactivateCoinMAfterDelay());
+    }
+
+    public bool isCoinMultiPlayerActive()
+    {
+        return isCoinMultiplayerActive;
+    }
+
+    private IEnumerator DeactivateCoinMAfterDelay()
+    {
+        while (coinMultiplierElapsedTime < CoinMDuration)
+        {
+            coinMultiplierElapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        isCoinMultiplayerActive = false;
+        CoinManager.instance.coinMultiplier = 1;
+    }
+
+    public float GetCoinMultiplierRemainingTime()
+    {
+        return Mathf.Max(CoinMDuration - coinMultiplierElapsedTime, 0);
     }
 }
-

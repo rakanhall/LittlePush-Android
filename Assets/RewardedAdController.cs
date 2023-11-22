@@ -31,7 +31,6 @@ namespace GoogleMobileAds.Sample
 
         private void Awake()
         {
-            StartCoroutine(CheckInternetConnection());
             LoadAd();
         }
 
@@ -69,35 +68,32 @@ namespace GoogleMobileAds.Sample
 
         public void ShowAd()
         {
-            if (!IAPManager.AdsRemoved)
+            if (_rewardedAd != null && _adLoaded)
             {
-                if (_rewardedAd != null && _adLoaded)
+                Debug.Log("Showing rewarded ad.");
+                _rewardedAd.Show((Reward reward) =>
                 {
-                    Debug.Log("Showing rewarded ad.");
-                    _rewardedAd.Show((Reward reward) =>
+                    Debug.Log(string.Format("Rewarded ad granted a reward: {0} {1}",
+                                            reward.Amount,
+                                            reward.Type));
+
+                    for (int i = 0; i < coinRewardAmount; i++)
                     {
-                        Debug.Log(string.Format("Rewarded ad granted a reward: {0} {1}",
-                                                reward.Amount,
-                                                reward.Type));
+                        coinManager.CollectCoin();
+                    }
+                    coinManager.UpdateCoinTexts();
 
-                        for (int i = 0; i < coinRewardAmount; i++)
-                        {
-                            coinManager.CollectCoin();
-                        }
-                        coinManager.UpdateCoinTexts();
-
-
-                        _adLoaded = false;  // Reset this flag only when ad is shown successfully
-                        LoadAd();  // Load next ad immediately after showing the current one
-                    });
-                }
-                else
-                {
-                    Debug.LogError("Rewarded ad is not ready yet.");
-                    // You might consider popping up a message to the user here.
-                }
+                    _adLoaded = false;  // Reset this flag only when the ad is shown successfully
+                    LoadAd();  // Load the next ad immediately after showing the current one
+                });
+            }
+            else
+            {
+                Debug.LogError("Rewarded ad is not ready yet.");
+                // You might consider popping up a message to the user here.
             }
         }
+
 
         public void DestroyAd()
         {
@@ -143,25 +139,6 @@ namespace GoogleMobileAds.Sample
             {
                 Debug.LogError("Rewarded ad failed to open full screen content with error : " + error);
             };
-        }
-
-        IEnumerator CheckInternetConnection()
-        {
-            using (UnityWebRequest www = UnityWebRequest.Get("https://google.com"))
-            {
-                yield return www.SendWebRequest();
-
-                if (www.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.LogError("Internet Connection Error: " + www.error);
-                    rewardButton.interactable = false; // Disable the button
-                }
-                else
-                {
-                    Debug.Log("Internet Connection Successful");
-                    rewardButton.interactable = true; // Enable the button
-                }
-            }
         }
     }
 }

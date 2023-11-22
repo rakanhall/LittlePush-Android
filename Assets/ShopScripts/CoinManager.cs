@@ -10,7 +10,7 @@ public class CoinManager : MonoBehaviour
     public TextMeshProUGUI totalCoinsText;
     public TextMeshProUGUI gameplayCoinsText;
     public TextMeshProUGUI gameplayCoinsTextEndMenu;
-    public int coinMultiplier = 1;
+    public int coinMultiplier;
     public AudioSource CoinsSound;
 
     private void Awake()

@@ -196,6 +196,11 @@ public class GameManager1 : MonoBehaviour
         timerValue += amount;
     }
 
+    public float GetTimerValue()
+    {
+        return timerValue;
+    }
+
     public void StartGame()
     {
         // Check if the guide should be shown

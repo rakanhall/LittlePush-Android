@@ -44,7 +44,7 @@ public class SlotManager : MonoBehaviour
 
     private int availableSlots = 1;  // Default to 1 available slot.
 
-    public AudioSource slotAddSound;
+    public Animator slotUse;
 
     private void Awake()
     {
@@ -86,11 +86,13 @@ public class SlotManager : MonoBehaviour
             {
                 slot1Power = powerName;
                 equipped = true;
+                slotUse.SetTrigger("Slot1");
             }
             else if (availableSlots == 2 && string.IsNullOrEmpty(slot2Power))
             {
                 slot2Power = powerName;
                 equipped = true;
+                slotUse.SetTrigger("Slot2");
             }
         }
 
@@ -109,14 +111,17 @@ public class SlotManager : MonoBehaviour
         if (slot1Power == powerName)
         {
             slot1Power = "";
+            slotUse.SetTrigger("UnSlot1");
             if (slot2Power == powerName)
             {
                 slot2Power = "";  // Clear the second slot as well
+                slotUse.SetTrigger("UnSlot2");
             }
         }
         else if (slot2Power == powerName)
         {
             slot2Power = "";
+            slotUse.SetTrigger("UnSlot2");
         }
 
         UpdateSlotImages();
@@ -288,7 +293,6 @@ public class SlotManager : MonoBehaviour
         slot2.gameObject.SetActive(true); // Enable the second slot
         plusButton.gameObject.SetActive(false); // Hide the '+' button once the second slot is unlocked
         gameplayButton2Text.gameObject.SetActive(true); // Enable the text too if it's separate
-        slotAddSound.Play();
     }
 
 

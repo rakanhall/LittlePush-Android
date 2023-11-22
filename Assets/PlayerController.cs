@@ -64,6 +64,7 @@ public class PlayerController : MonoBehaviour
     public BackgroundMusicController musicController;
     public ParticleSystem Dust;
     public ParticleSystem DeathPart;
+    public ParticleSystem JumpPart;
     public UIManager uiManager;
     public float checkDistance = 0.1f;
     public Animator pusherAnimator;
@@ -74,6 +75,9 @@ public class PlayerController : MonoBehaviour
     public InterstitialAdController interstitialAdController;
     public float gameStartDelay = 2.0f;
     public PowerUpController powerupcontroller;
+    public BalloonController balloonController;
+    public GameObject balloonReal;
+    public AudioSource powerUpSound;
 
     private Rigidbody2D rb;
     private BoxCollider2D boxCollider;
@@ -119,8 +123,11 @@ public class PlayerController : MonoBehaviour
         CoinsPlayMask.SetActive(false);
         BlackScreen.SetActive(false);
         ButtonSlots.SetActive(false);
+        balloonController.gameObject.SetActive(false);
+        balloonReal.SetActive(true);
 
         currentMaxFallSpeed = initialMaxFallSpeed;
+        powerupcontroller = GetComponent<PowerUpController>();
 
     }
 
@@ -145,11 +152,6 @@ public class PlayerController : MonoBehaviour
         if (powerupcontroller.IsMagnetActive())
         {
             AttractCoins();
-        }
-
-        if (powerupcontroller.IsMagnetTimerActive())
-        {
-            AttractTimer();
         }
 
         HandleMovement();
@@ -203,7 +205,10 @@ public class PlayerController : MonoBehaviour
         {
             LandSound.Play();
             timeInAir = 0f;
-            CreateDust();
+            if (!powerupcontroller.IsSlowFallingActive()) 
+            {
+                CreateDust();
+            }
         }
         else if (isGrounded)
         {
@@ -314,6 +319,7 @@ public class PlayerController : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, doubleJumpForce);
             jumpCount++; // Increase jump count
             DoubleJumpSound.Play();
+            JumpPart.Play();
         }
     }
 
@@ -357,9 +363,21 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("speed", isGrounded && Mathf.Abs(rb.velocity.x) > 0.1f);
         animator.SetBool("isJumping", rb.velocity.y > 0 && !isWallSliding && !isTouchingWall);
         animator.SetBool("isFalling", rb.velocity.y < 0);
+
+        // Check if slow fall power is active and set the animation parameter accordingly
+        if (powerupcontroller.IsSlowFallingActive())
+        {
+            animator.SetBool("isSlowFall", true);
+        }
+        else
+        {
+            animator.SetBool("isSlowFall", false);
+        }
+
         animator.SetBool("isSliding", isWallSliding && isTouchingWall);
         animator.SetBool("IsIdle", isGrounded && Mathf.Abs(rb.velocity.x) < 0.1f);
     }
+
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -413,6 +431,18 @@ public class PlayerController : MonoBehaviour
         Invoke("ShowScoreMenu", 0.5f);
         CoinsPlayMask.SetActive(false);
         BlackScreen.SetActive(true);
+
+        if (powerupcontroller.IsSlowFallingActive())
+        {
+            balloonController.gameObject.SetActive(true);
+            balloonController.ReleaseBalloon();
+            balloonReal.SetActive(false);
+        }
+        else
+        {
+            balloonController.gameObject.SetActive(false);
+            balloonReal.SetActive(false);
+        }
     }
 
     void ShowScoreMenu()
@@ -421,7 +451,7 @@ public class PlayerController : MonoBehaviour
         uiManager.ShowScoreMenu();
         musicController.ChangeToDeathVolume();
 
-        if (UnityEngine.Random.value < 0.1f)
+        if (UnityEngine.Random.value < 0.5f)
         {
             interstitialAdController.ShowAdIfReady();
         }
@@ -455,6 +485,7 @@ public class PlayerController : MonoBehaviour
         Invoke("TriggerGoAnimation", 5f);
         ShopButtonAnimation.SetTrigger("Go");
         ImageSlots.SetActive(false);
+        balloonController.gameObject.SetActive(false);
 
         // Set the pusher to start running
         pusherAnimator.SetBool("Run", true);
@@ -495,7 +526,7 @@ public class PlayerController : MonoBehaviour
     public void AttractCoins()
     {
         // Find all coins within the magnet range
-        Collider2D[] coinsInRange = Physics2D.OverlapCircleAll(transform.position, powerupcontroller.magnetRange, LayerMask.GetMask("Coin"));
+        Collider2D[] coinsInRange = Physics2D.OverlapCircleAll(transform.position, powerupcontroller.magnetRange, LayerMask.GetMask("Magnetize"));
         foreach (var coin in coinsInRange)
         {
             Rigidbody2D coinRb = coin.GetComponent<Rigidbody2D>();
@@ -507,24 +538,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void AttractTimer()
-    {
-        // Find all coins within the magnet range
-        Collider2D[] coinsInRange = Physics2D.OverlapCircleAll(transform.position, powerupcontroller.magnetRangeTimer, LayerMask.GetMask("Timer"));
-        foreach (var coin in coinsInRange)
-        {
-            Rigidbody2D coinRb = coin.GetComponent<Rigidbody2D>();
-            if (coinRb)
-            {
-                Vector2 direction = (transform.position - coin.transform.position).normalized;
-                coinRb.velocity = direction * powerupcontroller.magnetForceTimer;
-            }
-        }
-    }
-
     public void EnableTripleJump()
     {
         tripleJumpEnabled = true;
+        powerUpSound.Play();
     }
 
     public void DisableTripleJump()

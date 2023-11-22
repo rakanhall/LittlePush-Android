@@ -25,6 +25,10 @@ public class PowerUpUIHandler : MonoBehaviour
 
     public Animator MessageAnimation;
     public GameObject BlackScreen;
+    public InterstitialAdController interstitialAdController;
+    public TMP_Text TooMuchItemsText;
+    public Animator PurshaseMessgaeAnimation;
+    public AudioSource MessageSound;
 
     private void Start()
     {
@@ -72,6 +76,15 @@ public class PowerUpUIHandler : MonoBehaviour
     {
         Debug.Log("Attempting to buy... Coins before purchase: " + CoinManager.instance.totalCoins);
 
+        if (Quantity >= 64)
+        {
+            Debug.Log("Purchase limit reached. Cannot buy more.");
+            TooMuchItemsText.text = "Too Much items";
+            PurshaseMessgaeAnimation.SetTrigger("Go");
+            MessageSound.Play();
+            return; // Early return to stop further execution of this method
+        }
+
         if (IsUnlocked && CoinManager.instance.totalCoins >= PurchaseCost)
         {
             CoinManager.instance.totalCoins -= PurchaseCost;
@@ -105,6 +118,11 @@ public class PowerUpUIHandler : MonoBehaviour
             IsEquipped = true;  // Set equipped flag
             PlayerPrefs.SetInt(powerUpName + "_IsEquipped", 1);  // Save equipped state
             UpdateUI();
+
+            if (UnityEngine.Random.value < 0.2f)
+            {
+                interstitialAdController.ShowAdIfReady();
+            }
         }
         else
         {

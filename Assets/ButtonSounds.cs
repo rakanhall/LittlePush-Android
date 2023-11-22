@@ -6,6 +6,7 @@ public class ButtonSounds : MonoBehaviour
 {
     public AudioSource Buttonmainsound;
     public AudioSource Buttonexitsound;
+    public AudioSource Activationsound;
 
     public void ButtonMain()
     {
@@ -15,6 +16,11 @@ public class ButtonSounds : MonoBehaviour
     public void Buttonexit()
     {
         Buttonexitsound.Play();
+    }
+
+    public void Activate()
+    {
+        Activationsound.Play();
     }
 
 }

@@ -8,8 +8,6 @@ public class LevitatingCoin : MonoBehaviour
     public float probability = 0.9f;
     public SpriteRenderer spriteRenderer;
     public CircleCollider2D circleCollider2D;
-    public float levitationHeight = 0.1f;
-    public float levitationSpeed = 1.0f;
     public TextMeshPro plusOneTextPrefab;
 
     private Vector3 originalPosition;
@@ -17,13 +15,16 @@ public class LevitatingCoin : MonoBehaviour
     private void Start()
     {
         bool isEnabled = Random.value < probability;
-        spriteRenderer.enabled = isEnabled;
-        circleCollider2D.enabled = isEnabled;
 
-        if (isEnabled)
+        // Disable the entire GameObject if the probability condition is not met
+        if (!isEnabled)
         {
-            originalPosition = transform.position;
+            gameObject.SetActive(false);
+            return; // Early return to skip setting up the coin
         }
+
+        // If enabled, record the original position
+        originalPosition = transform.position;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -50,9 +51,8 @@ public class LevitatingCoin : MonoBehaviour
             Debug.LogWarning("CoinManager not found in the scene.");
         }
     }
-
-
 }
+
 
 
 
